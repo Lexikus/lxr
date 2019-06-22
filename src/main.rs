@@ -1,8 +1,9 @@
-mod window;
+mod graphic;
 
+use graphic::window;
 
 fn main() {
-    let mut window = window::window::Window::new("test", 100.0, 100.0);
+    let mut window = window::Window::new("test", 100.0, 100.0);
 
     window.events.run_forever(|event| {
         match event {
