@@ -1,5 +1,5 @@
 
-pub mod window;
+pub mod canvas;
 
 mod databuffer;
 mod indexbuffer;
