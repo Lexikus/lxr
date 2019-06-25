@@ -1,8 +1,7 @@
-
 pub mod canvas;
 
 mod databuffer;
 mod indexbuffer;
 mod program;
-mod shader;
+pub mod shader;
 mod vertexarray;
