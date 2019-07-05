@@ -1,7 +1,7 @@
 pub mod canvas;
-pub mod vertexarray;
+pub mod vertex_array;
 pub mod shader;
+pub mod data_buffer;
 
-mod databuffer;
-mod indexbuffer;
-mod program;
+pub mod index_buffer;
+pub mod program;

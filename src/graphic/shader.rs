@@ -9,7 +9,7 @@ use std::ptr;
 pub enum ShaderError {
     FailedOpeningFile,
     FailedReadingFile,
-    FailedCompilingShader,
+    FailedCompilingShader(String),
 }
 
 pub enum ShaderType {
@@ -31,7 +31,7 @@ impl Shader {
         let mut shader_code = String::new();
         match shader_file.read_to_string(&mut shader_code) {
             Ok(number) => number,
-            Err(_) => return Err(ShaderError::FailedOpeningFile),
+            Err(_) => return Err(ShaderError::FailedReadingFile),
         };
 
         let shader = CString::new(shader_code.as_bytes()).unwrap();
@@ -47,7 +47,7 @@ impl Shader {
             id
         };
 
-        let mut success = unsafe {
+        let success = unsafe {
             let mut success = 0;
             gl::CompileShader(id);
             gl::GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
@@ -55,7 +55,25 @@ impl Shader {
         };
 
         if success == 0 {
-            return Err(ShaderError::FailedCompilingShader);
+            let error_message = unsafe {
+                let mut len = 0;
+                gl::GetShaderiv(id, gl::INFO_LOG_LENGTH, &mut len);
+
+                let mut buf = Vec::with_capacity(len as usize);
+                let buf_ptr = buf.as_mut_ptr() as *mut gl::types::GLchar;
+
+                buf.set_len(len as usize);
+                gl::GetShaderInfoLog(id, len, std::ptr::null_mut(), buf_ptr);
+
+                let error_message = match String::from_utf8(buf) {
+                    Ok(log) => log,
+                    Err(vec) => panic!("Could not convert compilation log from buffer: {}", vec)
+                };
+
+                error_message
+            };
+
+            return Err(ShaderError::FailedCompilingShader(error_message));
         }
 
         Ok(Shader { id: id })
