@@ -4,10 +4,12 @@ extern crate cgmath;
 
 pub mod buffer_element;
 
+use buffer_element::BufferElement;
+
 pub struct DataBuffer {
     id: u32,
     stride: i32,
-    elements: Vec<buffer_element::BufferElement>,
+    elements: Vec<BufferElement>,
 }
 
 impl DataBuffer {
@@ -39,7 +41,7 @@ impl DataBuffer {
         }
     }
 
-    pub fn add_element(&mut self, element: buffer_element::BufferElement) {
+    pub fn add_element(&mut self, element: BufferElement) {
         self.stride += element.size;
         self.elements.push(element);
     }

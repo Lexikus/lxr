@@ -2,11 +2,12 @@
 extern crate gl;
 extern crate cgmath;
 
-use super::shader;
+use super::shader::Shader;
 use std::ffi::CString;
 
 use cgmath::{ Vector2, Vector3, Vector4, Matrix3, Matrix4 };
-use cgmath::prelude::*;
+use cgmath::prelude::Array;
+use cgmath::prelude::Matrix;
 
 pub enum ProgramError {
     FailedLinkingShader(String)
@@ -17,7 +18,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn new(vertex_shader: shader::Shader, fragment_shader: shader::Shader) -> Result<Program, ProgramError> {
+    pub fn new(vertex_shader: Shader, fragment_shader: Shader) -> Result<Program, ProgramError> {
         let id = unsafe {
             gl::CreateProgram()
         };
