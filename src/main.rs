@@ -1,7 +1,7 @@
 extern crate gl;
 extern crate glfw;
 
-extern crate cgmath;
+extern crate cgmath as cgm;
 
 mod graphic;
 
@@ -75,29 +75,129 @@ pub fn main() {
         }
     };
 
-    let _vertices_triangle: [cgmath::Vector3<f32>; 3] = [
-        cgmath::Vector3::new(0.0, 1.0, 0.0),
-        cgmath::Vector3::new(1.0, -1.0, 0.0),
-        cgmath::Vector3::new(-1.0, -1.0, 0.0),
+    let _vertices_cube: [cgm::Vector3<f32>; 24] = [
+        cgm::Vector3::new( -1.0, -1.0, 1.0 ),
+        cgm::Vector3::new(  1.0, -1.0, 1.0 ),
+        cgm::Vector3::new(  1.0,  1.0, 1.0 ),
+        cgm::Vector3::new( -1.0,  1.0, 1.0 ),
+
+        cgm::Vector3::new( -1.0, -1.0, -1.0 ),
+        cgm::Vector3::new(  1.0, -1.0, -1.0 ),
+        cgm::Vector3::new(  1.0,  1.0, -1.0 ),
+        cgm::Vector3::new( -1.0,  1.0, -1.0 ),
+
+        cgm::Vector3::new(  1.0, -1.0,  1.0 ),
+        cgm::Vector3::new(  1.0, -1.0, -1.0 ),
+        cgm::Vector3::new(  1.0,  1.0, -1.0 ),
+        cgm::Vector3::new(  1.0,  1.0,  1.0 ),
+
+        cgm::Vector3::new( -1.0, -1.0,  1.0 ),
+        cgm::Vector3::new( -1.0, -1.0, -1.0 ),
+        cgm::Vector3::new( -1.0,  1.0, -1.0 ),
+        cgm::Vector3::new( -1.0,  1.0,  1.0 ),
+
+        cgm::Vector3::new( -1.0,  1.0,  1.0 ),
+        cgm::Vector3::new(  1.0,  1.0,  1.0 ),
+        cgm::Vector3::new(  1.0,  1.0, -1.0 ),
+        cgm::Vector3::new( -1.0,  1.0, -1.0 ),
+
+        cgm::Vector3::new( -1.0, -1.0,  1.0 ),
+        cgm::Vector3::new( 1.0,  -1.0,  1.0 ),
+        cgm::Vector3::new( 1.0,  -1.0, -1.0 ),
+        cgm::Vector3::new( -1.0, -1.0, -1.0 ),
     ];
 
-    let _color_triangle: [cgmath::Vector4<f32>; 3] = [
-        cgmath::Vector4::new(1.0, 0.0, 0.0, 1.0),
-        cgmath::Vector4::new(0.0, 1.0, 0.0, 1.0),
-        cgmath::Vector4::new(0.0, 0.0, 1.0, 1.0),
+    let _color_cube: [cgm::Vector4<f32>; 24] = [
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
     ];
 
-    let _index_triangle = [
-        cgmath::Vector3::new(0, 1, 2)
+    let _index_cube = [
+        cgm::Vector3::new( 0, 1, 2 ),
+        cgm::Vector3::new( 0, 2, 3 ),
+
+        cgm::Vector3::new( 8, 9, 10 ),
+        cgm::Vector3::new( 8, 10, 11 ),
+
+        cgm::Vector3::new( 5, 4, 7 ),
+        cgm::Vector3::new( 5, 7, 6 ),
+
+        cgm::Vector3::new( 13, 12, 15 ),
+        cgm::Vector3::new( 13, 15, 14 ),
+
+        cgm::Vector3::new( 16, 17, 18 ),
+        cgm::Vector3::new( 16, 18, 19 ),
+
+        cgm::Vector3::new( 21, 20, 23 ),
+        cgm::Vector3::new( 21, 23, 22),
+    ];
+
+    let _uvs_cube: [cgm::Vector2<f32>; 24] = [
+        cgm::Vector2::new( 0.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 1.0 ),
+        cgm::Vector2::new( 0.0, 1.0 ),
+
+        cgm::Vector2::new( 0.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 1.0 ),
+        cgm::Vector2::new( 0.0, 1.0 ),
+
+        cgm::Vector2::new( 0.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 1.0 ),
+        cgm::Vector2::new( 0.0, 1.0 ),
+
+        cgm::Vector2::new( 0.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 1.0 ),
+        cgm::Vector2::new( 0.0, 1.0 ),
+
+        cgm::Vector2::new( 0.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 1.0 ),
+        cgm::Vector2::new( 0.0, 1.0 ),
+
+        cgm::Vector2::new( 0.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 0.0 ),
+        cgm::Vector2::new( 1.0, 1.0 ),
+        cgm::Vector2::new( 0.0, 1.0 ),
     ];
 
     let vertex_array = VertexArray::new();
     vertex_array.bind();
 
-    let mut _data_buffer = DataBuffer::new(_vertices_triangle.as_ptr(), _vertices_triangle.len() * std::mem::size_of::<cgmath::Vector3<f32>>());
+    let mut _data_buffer = DataBuffer::new(_vertices_cube.as_ptr(), _vertices_cube.len() * std::mem::size_of::<cgm::Vector3<f32>>());
     let _data_element = BufferElement::new(BufferDataType::Float3, "aPos", false);
 
-    let mut _data_buffer_color = DataBuffer::new(_color_triangle.as_ptr(), _color_triangle.len() * std::mem::size_of::<cgmath::Vector4<f32>>());
+    let mut _data_buffer_color = DataBuffer::new(_color_cube.as_ptr(), _color_cube.len() * std::mem::size_of::<cgm::Vector4<f32>>());
     let _data_element_color = BufferElement::new(BufferDataType::Float4, "aCol", false);
 
     _data_buffer.add_element(_data_element);
@@ -106,7 +206,7 @@ pub fn main() {
     _data_buffer_color.add_element(_data_element_color);
     _data_buffer_color.configure_by_name(program.id);
 
-    let _index_buffer = IndexBuffer::new(_index_triangle.as_ptr(), _index_triangle.len() * std::mem::size_of::<cgmath::Vector3<i32>>());
+    let _index_buffer = IndexBuffer::new(_index_cube.as_ptr(), _index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
 
     program.bind();
     program.set_float("uFloat", 1.0);
