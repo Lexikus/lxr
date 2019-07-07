@@ -25,6 +25,8 @@ use graphic::index_buffer::IndexBuffer;
 use graphic::texture::Texture;
 use graphic::texture::TextureError;
 
+use graphic::camera::Camera;
+
 const TITLE: &str = "OpenGL";
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
@@ -217,15 +219,14 @@ pub fn main() {
 
     let _index_buffer = IndexBuffer::new(index_cube.as_ptr(), index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
 
-    let projection = cgm::perspective(cgm::Deg(45.0), (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
-    let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, 0.0));
+    let camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
+    let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -10.0));
     model += cgm::Matrix4::<f32>::from_axis_angle(cgm::Vector3::new(0.0, 1.0, 0.0), cgm::Deg(45.0));
-    let view = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -10.0));
 
     program.bind();
-    program.set_mat4f("projection", &projection);
+    program.set_mat4f("projection", camera.get_projection());
     program.set_mat4f("model", &model);
-    program.set_mat4f("view", &view);
+    program.set_mat4f("view", camera.get_view());
 
     let texture = match Texture::new("src/assets/crate.jpg") {
         Ok(texture) => texture,
