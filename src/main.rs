@@ -1,7 +1,7 @@
 extern crate gl;
 extern crate glfw;
-
 extern crate cgmath as cgm;
+extern crate image;
 
 mod graphic;
 
@@ -22,6 +22,9 @@ use graphic::data_buffer::buffer_element::BufferElement;
 
 use graphic::index_buffer::IndexBuffer;
 
+use graphic::texture::Texture;
+use graphic::texture::TextureError;
+
 const TITLE: &str = "OpenGL";
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
@@ -29,7 +32,7 @@ const HEIGHT: u32 = 800;
 pub fn main() {
     let mut canvas = Canvas::new(TITLE, WIDTH, HEIGHT).expect("Window failed");
 
-    let _vertex_shader = match Shader::new(
+    let vertex_shader = match Shader::new(
         "src/assets/vertex.shader.glsl",
         ShaderType::VertexShader,
     ) {
@@ -48,7 +51,7 @@ pub fn main() {
         }
     };
 
-    let _fragment_shader = match Shader::new(
+    let fragment_shader = match Shader::new(
         "src/assets/fragment.shader.glsl",
         ShaderType::FragmentShader,
     ) {
@@ -67,7 +70,7 @@ pub fn main() {
         }
     };
 
-    let program = match Program::new(_vertex_shader, _fragment_shader) {
+    let program = match Program::new(vertex_shader, fragment_shader) {
         Ok(program) => program,
         Err(ProgramError::FailedLinkingShader(error)) => {
             println!("Linking program failed: \n{}", error);
@@ -75,7 +78,7 @@ pub fn main() {
         }
     };
 
-    let _vertices_cube: [cgm::Vector3<f32>; 24] = [
+    let vertices_cube: [cgm::Vector3<f32>; 24] = [
         cgm::Vector3::new( -1.0, -1.0, 1.0 ),
         cgm::Vector3::new(  1.0, -1.0, 1.0 ),
         cgm::Vector3::new(  1.0,  1.0, 1.0 ),
@@ -107,7 +110,7 @@ pub fn main() {
         cgm::Vector3::new( -1.0, -1.0, -1.0 ),
     ];
 
-    let _color_cube: [cgm::Vector4<f32>; 24] = [
+    let color_cube: [cgm::Vector4<f32>; 24] = [
         cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
         cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
         cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
@@ -139,7 +142,7 @@ pub fn main() {
         cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
     ];
 
-    let _index_cube = [
+    let index_cube = [
         cgm::Vector3::new( 0, 1, 2 ),
         cgm::Vector3::new( 0, 2, 3 ),
 
@@ -159,7 +162,7 @@ pub fn main() {
         cgm::Vector3::new( 21, 23, 22),
     ];
 
-    let _uvs_cube: [cgm::Vector2<f32>; 24] = [
+    let uvs_cube: [cgm::Vector2<f32>; 24] = [
         cgm::Vector2::new( 0.0, 0.0 ),
         cgm::Vector2::new( 1.0, 0.0 ),
         cgm::Vector2::new( 1.0, 1.0 ),
@@ -194,19 +197,25 @@ pub fn main() {
     let vertex_array = VertexArray::new();
     vertex_array.bind();
 
-    let mut _data_buffer = DataBuffer::new(_vertices_cube.as_ptr(), _vertices_cube.len() * std::mem::size_of::<cgm::Vector3<f32>>());
-    let _data_element = BufferElement::new(BufferDataType::Float3, "aPos", false);
+    let mut data_buffer = DataBuffer::new(vertices_cube.as_ptr(), vertices_cube.len() * std::mem::size_of::<cgm::Vector3<f32>>());
+    let data_element = BufferElement::new(BufferDataType::Float3, "aPos", false);
 
-    let mut _data_buffer_color = DataBuffer::new(_color_cube.as_ptr(), _color_cube.len() * std::mem::size_of::<cgm::Vector4<f32>>());
-    let _data_element_color = BufferElement::new(BufferDataType::Float4, "aCol", false);
+    let mut data_buffer_color = DataBuffer::new(color_cube.as_ptr(), color_cube.len() * std::mem::size_of::<cgm::Vector4<f32>>());
+    let data_element_color = BufferElement::new(BufferDataType::Float4, "aCol", false);
 
-    _data_buffer.add_element(_data_element);
-    _data_buffer.configure_by_name(program.id);
+    let mut data_buffer_texture = DataBuffer::new(uvs_cube.as_ptr(), uvs_cube.len() * std::mem::size_of::<cgm::Vector2<f32>>());
+    let data_element_texture = BufferElement::new(BufferDataType::Float2, "aUV", false);
 
-    _data_buffer_color.add_element(_data_element_color);
-    _data_buffer_color.configure_by_name(program.id);
+    data_buffer.add_element(data_element);
+    data_buffer.configure_by_name(program.id);
 
-    let _index_buffer = IndexBuffer::new(_index_cube.as_ptr(), _index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
+    data_buffer_color.add_element(data_element_color);
+    data_buffer_color.configure_by_name(program.id);
+
+    data_buffer_texture.add_element(data_element_texture);
+    data_buffer_texture.configure_by_name(program.id);
+
+    let _index_buffer = IndexBuffer::new(index_cube.as_ptr(), index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
 
     let projection = cgm::perspective(cgm::Deg(45.0), (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
     let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, 0.0));
@@ -218,7 +227,26 @@ pub fn main() {
     program.set_mat4f("model", &model);
     program.set_mat4f("view", &view);
 
-    unsafe { gl::Enable(gl::DEPTH_TEST); };
+    let texture = match Texture::new("src/assets/crate.jpg") {
+        Ok(texture) => texture,
+        Err(TextureError::OpeningTextureFailed) => {
+            println!("Loading texture failed");
+            return;
+        }
+    };
+    texture.bind();
+
+    // settings
+    unsafe {
+        gl::Enable(gl::DEPTH_TEST);
+
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::MIRRORED_REPEAT as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::MIRRORED_REPEAT as i32);
+
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+    }
+
     while !canvas.should_close() {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.7, 1.0);
