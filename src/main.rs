@@ -24,7 +24,7 @@ use graphic::index_buffer::IndexBuffer;
 
 const TITLE: &str = "OpenGL";
 const WIDTH: u32 = 800;
-const HEIGHT: u32 = 600;
+const HEIGHT: u32 = 800;
 
 pub fn main() {
     let mut canvas = Canvas::new(TITLE, WIDTH, HEIGHT).expect("Window failed");
@@ -108,34 +108,34 @@ pub fn main() {
     ];
 
     let _color_cube: [cgm::Vector4<f32>; 24] = [
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
         cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
 
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
         cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
 
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
         cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
 
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
         cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
+        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
+
+        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
+        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
         cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
     ];
 
@@ -208,14 +208,29 @@ pub fn main() {
 
     let _index_buffer = IndexBuffer::new(_index_cube.as_ptr(), _index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
 
-    program.bind();
-    program.set_float("uFloat", 1.0);
+    let projection = cgm::perspective(cgm::Deg(45.0), (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
+    let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, 0.0));
+    model += cgm::Matrix4::<f32>::from_axis_angle(cgm::Vector3::new(0.0, 1.0, 0.0), cgm::Deg(45.0));
+    let view = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -10.0));
 
+    program.bind();
+    program.set_mat4f("projection", &projection);
+    program.set_mat4f("model", &model);
+    program.set_mat4f("view", &view);
+
+    unsafe { gl::Enable(gl::DEPTH_TEST); };
     while !canvas.should_close() {
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.7, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
+
+        let delta_time: f32 = unsafe {
+            glfw::ffi::glfwGetTime() as f64
+        } as f32;
+
+        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(delta_time / 1000.0));
+        program.set_mat4f("model", &model);
 
         program.bind();
         vertex_array.bind();

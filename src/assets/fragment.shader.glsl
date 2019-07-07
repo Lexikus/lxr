@@ -1,10 +1,15 @@
 #version 400 core
 
-uniform float uFloat;
-
 in vec4 vCol;
-out vec4 FragColor;
+in vec2 vUV;
 
-void main() {
-	FragColor = vec4(uFloat, vCol);
+out vec4 fragColor;
+
+uniform sampler2D tex;
+
+void main()
+{
+    // vec3 color = texture(tex, vUV).rgb;
+    // fragColor = vec4(color, 1) * vCol;
+    fragColor = vCol;
 }
