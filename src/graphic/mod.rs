@@ -1,3 +1,4 @@
+pub mod api;
 pub mod canvas;
 pub mod vertex_array;
 pub mod shader;
