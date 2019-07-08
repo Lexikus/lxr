@@ -35,7 +35,7 @@ pub fn main() {
     let mut canvas = Canvas::new(TITLE, WIDTH, HEIGHT).expect("Window failed");
 
     let vertex_shader = match Shader::new(
-        "src/assets/vertex.shader.glsl",
+        "assets/vertex.shader.glsl",
         ShaderType::VertexShader,
     ) {
         Ok(v) => v,
@@ -54,7 +54,7 @@ pub fn main() {
     };
 
     let fragment_shader = match Shader::new(
-        "src/assets/fragment.shader.glsl",
+        "assets/fragment.shader.glsl",
         ShaderType::FragmentShader,
     ) {
         Ok(v) => v,
@@ -228,7 +228,7 @@ pub fn main() {
     program.set_mat4f("model", &model);
     program.set_mat4f("view", camera.get_view());
 
-    let texture = match Texture::new("src/assets/crate.jpg") {
+    let texture = match Texture::new("assets/crate.jpg") {
         Ok(texture) => texture,
         Err(TextureError::OpeningTextureFailed) => {
             println!("Loading texture failed");
