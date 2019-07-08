@@ -35,7 +35,7 @@ pub fn main() {
     let mut canvas = Canvas::new(TITLE, WIDTH, HEIGHT).expect("Window failed");
 
     let vertex_shader = match Shader::new(
-        "assets/vertex.shader.glsl",
+        "assets/brightness.vertex.glsl",
         ShaderType::VertexShader,
     ) {
         Ok(v) => v,
@@ -54,7 +54,7 @@ pub fn main() {
     };
 
     let fragment_shader = match Shader::new(
-        "assets/fragment.shader.glsl",
+        "assets/brightness.fragment.glsl",
         ShaderType::FragmentShader,
     ) {
         Ok(v) => v,
@@ -259,6 +259,9 @@ pub fn main() {
         } as f32;
 
         model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(delta_time / 1000.0));
+        program.set_float("uBrightness", delta_time.sin());
+        program.set_float("uContrast", delta_time.sin());
+        program.set_float("uGrayscale", delta_time.sin().abs());
         program.set_mat4f("model", &model);
 
         program.bind();
