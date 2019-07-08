@@ -8,9 +8,9 @@ const OPENGL_MINOR_VERSION: u32 = 0;
 use glfw::Context;
 
 pub struct Canvas {
-    pub title: String,
-    pub width: u32,
-    pub height: u32,
+    title: String,
+    width: u32,
+    height: u32,
     window: glfw::Window,
     glfw: glfw::Glfw,
 }
@@ -48,6 +48,18 @@ impl Canvas {
             window: window,
             glfw: glfw,
         })
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
     }
 
     pub fn should_close(&self) -> bool {

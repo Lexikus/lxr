@@ -42,7 +42,7 @@ impl DataBuffer {
     }
 
     pub fn add_element(&mut self, element: BufferElement) {
-        self.stride += element.size;
+        self.stride += element.size();
         self.elements.push(element);
     }
 
@@ -57,16 +57,16 @@ impl DataBuffer {
             unsafe {
                 gl::VertexAttribPointer(
                     i as u32,
-                    element.count,
-                    element.api_type,
-                    element.normalized,
+                    element.count(),
+                    element.api_type(),
+                    element.normalized(),
                     self.stride,
                     offset as *const std::ffi::c_void,
                 );
                 gl::EnableVertexAttribArray(i as u32);
             }
 
-            offset += element.size;
+            offset += element.size();
         }
     }
 
@@ -79,22 +79,22 @@ impl DataBuffer {
 
         for element in self.elements.iter() {
             let position: i32 = unsafe {
-                gl::GetAttribLocation(program_id, element.name.as_ptr() as *const gl::types::GLchar)
+                gl::GetAttribLocation(program_id, element.name().as_ptr() as *const gl::types::GLchar)
             };
 
             unsafe {
                 gl::VertexAttribPointer(
                     position as u32,
-                    element.count,
-                    element.api_type,
-                    element.normalized,
+                    element.count(),
+                    element.api_type(),
+                    element.normalized(),
                     self.stride,
                     offset as *const std::ffi::c_void,
                 );
                 gl::EnableVertexAttribArray(position as u32);
             }
 
-            offset += element.size;
+            offset += element.size();
         }
     }
 }

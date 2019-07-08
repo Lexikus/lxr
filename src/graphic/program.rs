@@ -14,7 +14,7 @@ pub enum ProgramError {
 }
 
 pub struct Program {
-    pub id: u32,
+    id: u32,
 }
 
 impl Program {
@@ -26,8 +26,8 @@ impl Program {
         let success = unsafe {
             let mut success = 0;
 
-            gl::AttachShader(id, vertex_shader.id);
-            gl::AttachShader(id, fragment_shader.id);
+            gl::AttachShader(id, vertex_shader.id());
+            gl::AttachShader(id, fragment_shader.id());
             gl::LinkProgram(id);
 
             gl::GetProgramiv(id, gl::LINK_STATUS, &mut success);
@@ -62,6 +62,10 @@ impl Program {
         Ok(Program {
             id: id,
         })
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
     }
 
     pub fn bind(&self) {

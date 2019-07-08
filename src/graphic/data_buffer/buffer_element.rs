@@ -2,6 +2,7 @@
 extern crate gl;
 
 use std::ffi::CString;
+use std::ffi::CStr;
 
 pub enum BufferDataType {
     None,
@@ -72,11 +73,11 @@ impl BufferDataType {
 }
 
 pub struct BufferElement {
-    pub name: CString,
-    pub size: i32,
-    pub count: i32,
-    pub api_type: u32,
-    pub normalized: u8,
+    name: CString,
+    size: i32,
+    count: i32,
+    api_type: u32,
+    normalized: u8,
 }
 
 impl BufferElement {
@@ -91,5 +92,25 @@ impl BufferElement {
                 false => 0
             },
         }
+    }
+
+    pub fn name(&self) -> &CStr {
+        &self.name
+    }
+
+    pub fn size(&self) -> i32 {
+        self.size
+    }
+
+    pub fn count(&self) -> i32 {
+        self.count
+    }
+
+    pub fn api_type(&self) -> u32 {
+        self.api_type
+    }
+
+    pub fn normalized(&self) -> u8 {
+        self.normalized
     }
 }

@@ -18,7 +18,7 @@ pub enum ShaderType {
 }
 
 pub struct Shader {
-    pub id: u32,
+    id: u32,
 }
 
 impl Shader {
@@ -77,6 +77,10 @@ impl Shader {
         }
 
         Ok(Shader { id: id })
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
     }
 
     pub fn delete(&self) {

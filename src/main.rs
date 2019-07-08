@@ -209,13 +209,13 @@ pub fn main() {
     let data_element_texture = BufferElement::new(BufferDataType::Float2, "aUV", false);
 
     data_buffer.add_element(data_element);
-    data_buffer.configure_by_name(program.id);
+    data_buffer.configure_by_name(program.id());
 
     data_buffer_color.add_element(data_element_color);
-    data_buffer_color.configure_by_name(program.id);
+    data_buffer_color.configure_by_name(program.id());
 
     data_buffer_texture.add_element(data_element_texture);
-    data_buffer_texture.configure_by_name(program.id);
+    data_buffer_texture.configure_by_name(program.id());
 
     let _index_buffer = IndexBuffer::new(index_cube.as_ptr(), index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
 
