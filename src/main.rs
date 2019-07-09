@@ -1,11 +1,11 @@
 extern crate gl;
 extern crate glfw;
 extern crate cgmath as cgm;
-extern crate image;
 
+mod base;
 mod graphic;
 
-use graphic::canvas::Canvas;
+use base::canvas::Canvas;
 
 use graphic::shader::Shader;
 use graphic::shader::ShaderType;
