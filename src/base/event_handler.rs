@@ -1,5 +1,11 @@
-#![allow(dead_code)]
+enum Event {
 
-struct Event;
+}
 
-trait EventHandler;
+struct Dispatcher {
+
+}
+
+struct EventHandler {
+
+}

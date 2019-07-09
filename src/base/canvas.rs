@@ -5,7 +5,14 @@ extern crate glfw;
 const OPENGL_MAJOR_VERSION: u32 = 4;
 const OPENGL_MINOR_VERSION: u32 = 0;
 
+use std::sync::mpsc::Receiver;
+
 use glfw::Context;
+use glfw::WindowEvent;
+use glfw::Key;
+
+// use crate::base::event_handler as eh;
+// use crate::base::event_handler::EventType;
 
 pub struct Canvas {
     title: String,
@@ -13,6 +20,7 @@ pub struct Canvas {
     height: u32,
     window: glfw::Window,
     glfw: glfw::Glfw,
+    events: Receiver<(f64, glfw::WindowEvent)>,
 }
 
 impl Canvas {
@@ -31,7 +39,7 @@ impl Canvas {
         ));
         glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
 
-        let (mut window, _receiver) =
+        let (mut window, receiver) =
             match glfw.create_window(width, height, title, glfw::WindowMode::Windowed) {
                 Some((window, receiver)) => (window, receiver),
                 None => return None,
@@ -41,12 +49,15 @@ impl Canvas {
 
         gl::load_with(|s| window.get_proc_address(s));
 
+        window.set_key_polling(true);
+
         Some(Canvas {
             title: title.to_owned(),
             width: width,
             height: height,
             window: window,
             glfw: glfw,
+            events: receiver,
         })
     }
 
@@ -81,6 +92,20 @@ impl Canvas {
     pub fn on_update(&mut self) {
         self.window.swap_buffers();
         self.glfw.poll_events();
+
+        for (_, event) in glfw::flush_messages(&mut self.events) {
+            match event {
+                WindowEvent::Key(key, _scancode, _action, _modifiers) => {
+                    match key {
+                        Key::Escape => {
+                            self.window.set_should_close(true);
+                        },
+                        _ => ()
+                    }
+                },
+                _ => ()
+            };
+        }
     }
 
     pub fn terminate() {
