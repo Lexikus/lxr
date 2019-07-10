@@ -4,6 +4,7 @@ extern crate cgmath as cgm;
 
 mod base;
 mod graphic;
+mod util;
 
 use base::canvas::Canvas;
 
@@ -249,6 +250,8 @@ pub fn main() {
     }
 
     while !canvas.should_close() {
+        canvas.poll_events();
+
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.7, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -257,6 +260,12 @@ pub fn main() {
         let delta_time: f32 = unsafe {
             glfw::ffi::glfwGetTime() as f64
         } as f32;
+
+        for k in canvas.poll_keyboard_events().iter() {
+            if k.modifier == util::key::Modifier::Shift{
+                println!("ctrl alt");
+            }
+        }
 
         model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(delta_time / 1000.0));
         program.set_float("uBrightness", delta_time.sin());
