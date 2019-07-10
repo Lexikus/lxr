@@ -249,6 +249,9 @@ pub fn main() {
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
     }
 
+    let mut input: base::input::Input;
+
+    let mut dir = 0;
     while !canvas.should_close() {
         canvas.poll_events();
 
@@ -261,13 +264,21 @@ pub fn main() {
             glfw::ffi::glfwGetTime() as f64
         } as f32;
 
-        for k in canvas.poll_keyboard_events().iter() {
-            if k.modifier == util::key::Modifier::Shift{
-                println!("ctrl alt");
+        input = base::input::Input::init(canvas.poll_keyboard_events());
+
+        if input.is_key_pressed(1) {
+            dir = -1;
+        }
+
+        for (_, input) in canvas.poll_keyboard_events().iter() {
+            if input.key == util::key::Key::A && input.action == util::key::Action::Press {
+                dir = -1;
+            } else if input.key == util::key::Key::A && input.action == util::key::Action::Release {
+                dir = 0;
             }
         }
 
-        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(delta_time / 1000.0));
+        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 10) as f32));
         program.set_float("uBrightness", delta_time.sin());
         program.set_float("uContrast", delta_time.sin());
         program.set_float("uGrayscale", delta_time.sin().abs());

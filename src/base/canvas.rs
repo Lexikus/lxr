@@ -12,6 +12,7 @@ use crate::util::key::Action;
 use crate::util::key::Modifier;
 
 use std::sync::mpsc::Receiver;
+use std::collections::HashMap;
 
 use glfw::Context;
 use glfw::WindowEvent;
@@ -23,7 +24,7 @@ pub struct Canvas {
     window: glfw::Window,
     glfw: glfw::Glfw,
     events: Receiver<(f64, glfw::WindowEvent)>,
-    keyboard_events: Vec<Input>,
+    keyboard_events: HashMap<i32, Input>,
 }
 
 impl Canvas {
@@ -61,7 +62,7 @@ impl Canvas {
             window: window,
             glfw: glfw,
             events: receiver,
-            keyboard_events: Vec::new(),
+            keyboard_events: HashMap::new(),
         })
     }
 
@@ -93,7 +94,7 @@ impl Canvas {
         }
     }
 
-    pub fn poll_keyboard_events(&self) -> &Vec<Input> {
+    pub fn poll_keyboard_events(&self) -> &HashMap<i32, Input> {
         &self.keyboard_events
     }
 
@@ -246,12 +247,11 @@ impl Canvas {
                         _ => Modifier::Unknown,
                     };
 
-                    let input = Input {
+                    self.keyboard_events.insert(key as i32, Input {
                         key: key,
                         action: action,
                         modifier: modifier,
-                    };
-                    self.keyboard_events.push(input);
+                    });
                 },
                 _ => ()
             };
