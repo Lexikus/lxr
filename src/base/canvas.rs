@@ -11,8 +11,9 @@ use crate::util::key::Key;
 use crate::util::key::Action;
 use crate::util::key::Modifier;
 
+use super::input::Input as InputController;
+
 use std::sync::mpsc::Receiver;
-use std::collections::HashMap;
 
 use glfw::Context;
 use glfw::WindowEvent;
@@ -24,7 +25,6 @@ pub struct Canvas {
     window: glfw::Window,
     glfw: glfw::Glfw,
     events: Receiver<(f64, glfw::WindowEvent)>,
-    keyboard_events: HashMap<i32, Input>,
 }
 
 impl Canvas {
@@ -61,8 +61,7 @@ impl Canvas {
             height: height,
             window: window,
             glfw: glfw,
-            events: receiver,
-            keyboard_events: HashMap::new(),
+            events: receiver
         })
     }
 
@@ -94,14 +93,8 @@ impl Canvas {
         }
     }
 
-    pub fn poll_keyboard_events(&self) -> &HashMap<i32, Input> {
-        &self.keyboard_events
-    }
-
-    pub fn poll_events(&mut self) {
+    pub fn poll_events(&mut self, input_controller: &mut InputController) {
         self.glfw.poll_events();
-
-        self.keyboard_events.clear() ;
 
         for (_, message) in glfw::flush_messages(&mut self.events) {
             match message {
@@ -247,7 +240,7 @@ impl Canvas {
                         _ => Modifier::Unknown,
                     };
 
-                    self.keyboard_events.insert(key as i32, Input {
+                    input_controller.update(key, Input {
                         key: key,
                         action: action,
                         modifier: modifier,

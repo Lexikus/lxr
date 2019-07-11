@@ -7,6 +7,7 @@ mod graphic;
 mod util;
 
 use base::canvas::Canvas;
+use base::input::Input;
 
 use graphic::shader::Shader;
 use graphic::shader::ShaderType;
@@ -249,11 +250,11 @@ pub fn main() {
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
     }
 
-    let mut input: base::input::Input;
+    let mut input = Input::new();
 
-    let mut dir = 0;
     while !canvas.should_close() {
-        canvas.poll_events();
+        canvas.poll_events(&mut input);
+        let mut dir = 0;
 
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.7, 1.0);
@@ -264,18 +265,8 @@ pub fn main() {
             glfw::ffi::glfwGetTime() as f64
         } as f32;
 
-        input = base::input::Input::init(canvas.poll_keyboard_events());
-
-        if input.is_key_pressed(1) {
+        if input.is_key_pressed(&util::key::Key::A) {
             dir = -1;
-        }
-
-        for (_, input) in canvas.poll_keyboard_events().iter() {
-            if input.key == util::key::Key::A && input.action == util::key::Action::Press {
-                dir = -1;
-            } else if input.key == util::key::Key::A && input.action == util::key::Action::Release {
-                dir = 0;
-            }
         }
 
         model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 10) as f32));
