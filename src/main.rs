@@ -35,6 +35,7 @@ const HEIGHT: u32 = 800;
 
 pub fn main() {
     let mut canvas = Canvas::new(TITLE, WIDTH, HEIGHT).expect("Window failed");
+    let mut input = Input::new();
 
     let vertex_shader = match Shader::new(
         "assets/brightness.vertex.glsl",
@@ -250,8 +251,6 @@ pub fn main() {
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
     }
 
-    let mut input = Input::new();
-
     while !canvas.should_close() {
         canvas.poll_events(&mut input);
         let mut dir = 0;
@@ -265,11 +264,11 @@ pub fn main() {
             glfw::ffi::glfwGetTime() as f64
         } as f32;
 
-        if input.is_key_pressed(&util::key::Key::A) {
+        if input.is_key_pressed_down(&util::key::Key::A) {
             dir = -1;
         }
 
-        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 10) as f32));
+        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 2) as f32));
         program.set_float("uBrightness", delta_time.sin());
         program.set_float("uContrast", delta_time.sin());
         program.set_float("uGrayscale", delta_time.sin().abs());

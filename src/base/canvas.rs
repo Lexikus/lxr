@@ -18,16 +18,17 @@ use std::sync::mpsc::Receiver;
 use glfw::Context;
 use glfw::WindowEvent;
 
-pub struct Canvas {
+pub struct Canvas<'a> {
     title: String,
     width: u32,
     height: u32,
     window: glfw::Window,
     glfw: glfw::Glfw,
     events: Receiver<(f64, glfw::WindowEvent)>,
+    keyboard_controller: Option<&'a mut InputController>,
 }
 
-impl Canvas {
+impl<'a> Canvas<'a> {
     pub fn new(title: &str, width: u32, height: u32) -> Option<Canvas> {
         let mut glfw = match glfw::init(glfw::FAIL_ON_ERRORS) {
             Ok(glfw) => glfw,
@@ -61,9 +62,11 @@ impl Canvas {
             height: height,
             window: window,
             glfw: glfw,
-            events: receiver
+            events: receiver,
+            keyboard_controller: None,
         })
     }
+
 
     pub fn title(&self) -> &str {
         &self.title
@@ -240,7 +243,7 @@ impl Canvas {
                         _ => Modifier::Unknown,
                     };
 
-                    input_controller.update(key, Input {
+                    input_controller.update(&key, Input {
                         key: key,
                         action: action,
                         modifier: modifier,

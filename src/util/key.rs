@@ -123,14 +123,14 @@ pub enum Key {
     Unknown,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum Action {
     Release,
     Press,
     Repeat,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum Modifier {
     Shift,
     Control,
@@ -141,7 +141,7 @@ pub enum Modifier {
     Unknown,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Input {
     pub key: Key,
     pub action: Action,
