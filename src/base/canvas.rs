@@ -18,21 +18,25 @@ use std::sync::mpsc::Receiver;
 use glfw::Context;
 use glfw::WindowEvent;
 
-pub struct Canvas<'a> {
+pub enum CanvasError {
+    CanvasInitFailed,
+    CreatingWindowFailed,
+}
+
+pub struct Canvas {
     title: String,
     width: u32,
     height: u32,
     window: glfw::Window,
     glfw: glfw::Glfw,
     events: Receiver<(f64, glfw::WindowEvent)>,
-    keyboard_controller: Option<&'a mut InputController>,
 }
 
-impl<'a> Canvas<'a> {
-    pub fn new(title: &str, width: u32, height: u32) -> Option<Canvas> {
+impl Canvas {
+    pub fn new(title: &str, width: u32, height: u32) -> Result<Canvas, CanvasError> {
         let mut glfw = match glfw::init(glfw::FAIL_ON_ERRORS) {
             Ok(glfw) => glfw,
-            Err(_) => return None,
+            Err(_) => return Err(CanvasError::CanvasInitFailed),
         };
 
         glfw.window_hint(glfw::WindowHint::ContextVersion(
@@ -47,7 +51,7 @@ impl<'a> Canvas<'a> {
         let (mut window, receiver) =
             match glfw.create_window(width, height, title, glfw::WindowMode::Windowed) {
                 Some((window, receiver)) => (window, receiver),
-                None => return None,
+                None => return Err(CanvasError::CreatingWindowFailed),
             };
 
         glfw.make_context_current(Some(&window));
@@ -56,14 +60,13 @@ impl<'a> Canvas<'a> {
 
         window.set_key_polling(true);
 
-        Some(Canvas {
+        Ok(Canvas {
             title: title.to_owned(),
             width: width,
             height: height,
             window: window,
             glfw: glfw,
             events: receiver,
-            keyboard_controller: None,
         })
     }
 

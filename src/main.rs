@@ -7,6 +7,7 @@ mod graphic;
 mod util;
 
 use base::canvas::Canvas;
+use base::canvas::CanvasError;
 use base::input::Input;
 
 use graphic::shader::Shader;
@@ -34,7 +35,13 @@ const WIDTH: u32 = 800;
 const HEIGHT: u32 = 800;
 
 pub fn main() {
-    let mut canvas = Canvas::new(TITLE, WIDTH, HEIGHT).expect("Window failed");
+    let mut canvas = match Canvas::new(TITLE, WIDTH, HEIGHT) {
+        Ok(canvas) => canvas,
+        Err(_) => {
+            println!("Canvas failed");
+            return;
+        }
+    };
     let mut input = Input::new();
 
     let vertex_shader = match Shader::new(
