@@ -4,10 +4,8 @@ extern crate cgmath as cgm;
 
 mod base;
 mod graphic;
-mod util;
 
 use base::canvas::Canvas;
-use base::canvas::CanvasError;
 use base::input::Input;
 
 use graphic::shader::Shader;
@@ -271,7 +269,7 @@ pub fn main() {
             glfw::ffi::glfwGetTime() as f64
         } as f32;
 
-        if input.is_key_pressed_down(&util::key::Key::A) {
+        if input.is_key_pressed_down(&base::keyboard::Key::A) {
             dir = -1;
         }
 

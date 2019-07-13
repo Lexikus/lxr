@@ -6,10 +6,10 @@ extern crate glfw;
 const OPENGL_MAJOR_VERSION: u32 = 4;
 const OPENGL_MINOR_VERSION: u32 = 0;
 
-use crate::util::key::Input;
-use crate::util::key::Key;
-use crate::util::key::Action;
-use crate::util::key::Modifier;
+use super::keyboard::Input;
+use super::keyboard::Key;
+use super::keyboard::Action;
+use super::keyboard::Modifier;
 
 use super::input::Input as InputController;
 
