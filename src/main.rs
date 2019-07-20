@@ -4,6 +4,7 @@ extern crate cgmath as cgm;
 
 mod base;
 mod graphic;
+mod primitive;
 
 use base::canvas::Canvas;
 use base::input::Input;
@@ -15,18 +16,14 @@ use graphic::shader::ShaderError;
 use graphic::program::Program;
 use graphic::program::ProgramError;
 
-use graphic::vertex_array::VertexArray;
-
-use graphic::data_buffer::DataBuffer;
-use graphic::data_buffer::buffer_element::BufferDataType;
-use graphic::data_buffer::buffer_element::BufferElement;
-
-use graphic::index_buffer::IndexBuffer;
+use primitive::cube::Cube;
 
 use graphic::texture::Texture;
 use graphic::texture::TextureError;
 
 use graphic::camera::Camera;
+
+use base::keyboard::Key;
 
 const TITLE: &str = "OpenGL";
 const WIDTH: u32 = 800;
@@ -43,7 +40,7 @@ pub fn main() {
     let mut input = Input::new();
 
     let vertex_shader = match Shader::new(
-        "assets/brightness.vertex.glsl",
+        "assets/shaders/light.vertex.glsl",
         ShaderType::VertexShader,
     ) {
         Ok(v) => v,
@@ -62,7 +59,7 @@ pub fn main() {
     };
 
     let fragment_shader = match Shader::new(
-        "assets/brightness.fragment.glsl",
+        "assets/shaders/light.fragment.glsl",
         ShaderType::FragmentShader,
     ) {
         Ok(v) => v,
@@ -88,144 +85,7 @@ pub fn main() {
         }
     };
 
-    let vertices_cube: [cgm::Vector3<f32>; 24] = [
-        cgm::Vector3::new( -1.0, -1.0, 1.0 ),
-        cgm::Vector3::new(  1.0, -1.0, 1.0 ),
-        cgm::Vector3::new(  1.0,  1.0, 1.0 ),
-        cgm::Vector3::new( -1.0,  1.0, 1.0 ),
-
-        cgm::Vector3::new( -1.0, -1.0, -1.0 ),
-        cgm::Vector3::new(  1.0, -1.0, -1.0 ),
-        cgm::Vector3::new(  1.0,  1.0, -1.0 ),
-        cgm::Vector3::new( -1.0,  1.0, -1.0 ),
-
-        cgm::Vector3::new(  1.0, -1.0,  1.0 ),
-        cgm::Vector3::new(  1.0, -1.0, -1.0 ),
-        cgm::Vector3::new(  1.0,  1.0, -1.0 ),
-        cgm::Vector3::new(  1.0,  1.0,  1.0 ),
-
-        cgm::Vector3::new( -1.0, -1.0,  1.0 ),
-        cgm::Vector3::new( -1.0, -1.0, -1.0 ),
-        cgm::Vector3::new( -1.0,  1.0, -1.0 ),
-        cgm::Vector3::new( -1.0,  1.0,  1.0 ),
-
-        cgm::Vector3::new( -1.0,  1.0,  1.0 ),
-        cgm::Vector3::new(  1.0,  1.0,  1.0 ),
-        cgm::Vector3::new(  1.0,  1.0, -1.0 ),
-        cgm::Vector3::new( -1.0,  1.0, -1.0 ),
-
-        cgm::Vector3::new( -1.0, -1.0,  1.0 ),
-        cgm::Vector3::new( 1.0,  -1.0,  1.0 ),
-        cgm::Vector3::new( 1.0,  -1.0, -1.0 ),
-        cgm::Vector3::new( -1.0, -1.0, -1.0 ),
-    ];
-
-    let color_cube: [cgm::Vector4<f32>; 24] = [
-        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-
-        cgm::Vector4::new( 1.0, 0.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 1.0, 0.0, 1.0 ),
-        cgm::Vector4::new( 0.0, 0.0, 1.0, 1.0 ),
-        cgm::Vector4::new( 1.0, 1.0, 1.0, 1.0 ),
-    ];
-
-    let index_cube = [
-        cgm::Vector3::new( 0, 1, 2 ),
-        cgm::Vector3::new( 0, 2, 3 ),
-
-        cgm::Vector3::new( 8, 9, 10 ),
-        cgm::Vector3::new( 8, 10, 11 ),
-
-        cgm::Vector3::new( 5, 4, 7 ),
-        cgm::Vector3::new( 5, 7, 6 ),
-
-        cgm::Vector3::new( 13, 12, 15 ),
-        cgm::Vector3::new( 13, 15, 14 ),
-
-        cgm::Vector3::new( 16, 17, 18 ),
-        cgm::Vector3::new( 16, 18, 19 ),
-
-        cgm::Vector3::new( 21, 20, 23 ),
-        cgm::Vector3::new( 21, 23, 22),
-    ];
-
-    let uvs_cube: [cgm::Vector2<f32>; 24] = [
-        cgm::Vector2::new( 0.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 1.0 ),
-        cgm::Vector2::new( 0.0, 1.0 ),
-
-        cgm::Vector2::new( 0.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 1.0 ),
-        cgm::Vector2::new( 0.0, 1.0 ),
-
-        cgm::Vector2::new( 0.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 1.0 ),
-        cgm::Vector2::new( 0.0, 1.0 ),
-
-        cgm::Vector2::new( 0.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 1.0 ),
-        cgm::Vector2::new( 0.0, 1.0 ),
-
-        cgm::Vector2::new( 0.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 1.0 ),
-        cgm::Vector2::new( 0.0, 1.0 ),
-
-        cgm::Vector2::new( 0.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 0.0 ),
-        cgm::Vector2::new( 1.0, 1.0 ),
-        cgm::Vector2::new( 0.0, 1.0 ),
-    ];
-
-    let vertex_array = VertexArray::new();
-    vertex_array.bind();
-
-    let mut data_buffer = DataBuffer::new(vertices_cube.as_ptr(), vertices_cube.len() * std::mem::size_of::<cgm::Vector3<f32>>());
-    let data_element = BufferElement::new(BufferDataType::Float3, "aPos", false);
-
-    let mut data_buffer_color = DataBuffer::new(color_cube.as_ptr(), color_cube.len() * std::mem::size_of::<cgm::Vector4<f32>>());
-    let data_element_color = BufferElement::new(BufferDataType::Float4, "aCol", false);
-
-    let mut data_buffer_texture = DataBuffer::new(uvs_cube.as_ptr(), uvs_cube.len() * std::mem::size_of::<cgm::Vector2<f32>>());
-    let data_element_texture = BufferElement::new(BufferDataType::Float2, "aUV", false);
-
-    data_buffer.add_element(data_element);
-    data_buffer.configure_by_name(program.id());
-
-    data_buffer_color.add_element(data_element_color);
-    data_buffer_color.configure_by_name(program.id());
-
-    data_buffer_texture.add_element(data_element_texture);
-    data_buffer_texture.configure_by_name(program.id());
-
-    let _index_buffer = IndexBuffer::new(index_cube.as_ptr(), index_cube.len() * std::mem::size_of::<cgm::Vector3<i32>>());
+    let cube = Cube::new();
 
     let camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
     let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -10.0));
@@ -236,7 +96,7 @@ pub fn main() {
     program.set_mat4f("model", &model);
     program.set_mat4f("view", camera.get_view());
 
-    let texture = match Texture::new("assets/crate.jpg") {
+    let texture = match Texture::new("assets/textures/crate.jpg") {
         Ok(texture) => texture,
         Err(TextureError::OpeningTextureFailed) => {
             println!("Loading texture failed");
@@ -257,7 +117,7 @@ pub fn main() {
     }
 
     while !canvas.should_close() {
-        canvas.poll_events(&mut input);
+        canvas.on_update_begin(&mut input);
         let mut dir = 0;
 
         unsafe {
@@ -269,8 +129,10 @@ pub fn main() {
             glfw::ffi::glfwGetTime() as f64
         } as f32;
 
-        if input.is_key_pressed_down(&base::keyboard::Key::A) {
+        if input.is_key_pressed_down(&Key::A) {
             dir = -1;
+        } else if input.is_key_pressed_down(&Key::D) {
+            dir = 1;
         }
 
         model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 2) as f32));
@@ -280,12 +142,12 @@ pub fn main() {
         program.set_mat4f("model", &model);
 
         program.bind();
-        vertex_array.bind();
+        cube.bind();
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
         }
 
-        canvas.on_update();
+        canvas.on_update_end();
     }
 }

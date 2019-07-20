@@ -99,7 +99,7 @@ impl Canvas {
         }
     }
 
-    pub fn poll_events(&mut self, input_controller: &mut InputController) {
+    pub fn on_update_begin(&mut self, input_controller: &mut InputController) {
         self.glfw.poll_events();
 
         for (_, message) in glfw::flush_messages(&mut self.events) {
@@ -257,7 +257,7 @@ impl Canvas {
         }
     }
 
-    pub fn on_update(&mut self) {
+    pub fn on_update_end(&mut self) {
         self.window.swap_buffers();
     }
 
