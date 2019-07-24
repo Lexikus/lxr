@@ -22,8 +22,9 @@ impl Camera {
         }
 
         let projection = cgm::perspective(cgm::Deg(fovy_deg), aspect, near, far);
-        let position: cgm::Vector3<f32> = cgm::Vector3::new(0.0, 0.0, 0.0);
-        let view: cgm::Matrix4<f32> = cgm::Matrix4::from_translation(position);
+        let position: cgm::Vector3<f32> = cgm::Vector3::new(0.0, -3.0, 0.0);
+        let mut view: cgm::Matrix4<f32> = cgm::Matrix4::from_translation(position);
+        view += cgm::Matrix4::<f32>::from_axis_angle(cgm::Vector3::new(1.0, 0.0, 0.0), cgm::Deg(45.0));
 
         Camera {
             camera_type: CameraType::Perspective,

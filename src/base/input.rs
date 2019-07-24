@@ -163,8 +163,7 @@ impl Input {
         return self.inputs[key].action == Action::Press;
     }
 
-    pub fn is_key_pressed_down(&mut self, key: &Key) -> bool {
+    pub fn is_key_pressed_down(&self, key: &Key) -> bool {
         return self.inputs[key].action == Action::Press || self.inputs[key].action == Action::Repeat;
     }
 }
-

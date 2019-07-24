@@ -17,6 +17,7 @@ use graphic::program::Program;
 use graphic::program::ProgramError;
 
 use primitive::cube::Cube;
+use primitive::plane::Plane;
 
 use graphic::texture::Texture;
 use graphic::texture::TextureError;
@@ -86,6 +87,7 @@ pub fn main() {
     };
 
     let cube = Cube::new();
+    let plane = Plane::new(2.0, 2.0);
 
     let camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
     let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -10.0));
@@ -142,7 +144,8 @@ pub fn main() {
         program.set_mat4f("model", &model);
 
         program.bind();
-        cube.bind();
+        plane.bind();
+        // cube.bind();
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
