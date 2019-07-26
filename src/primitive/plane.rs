@@ -3,6 +3,7 @@
 extern crate cgmath as cgm;
 
 use cgm::Vector3;
+use cgm::Vector2;
 
 use crate::graphic::data_buffer::buffer_element::BufferDataType;
 use crate::graphic::data_buffer::buffer_element::BufferElement;
@@ -26,7 +27,7 @@ impl Plane {
         let capacity = res_x * res_z;
 
         let mut vertices = Vec::with_capacity(capacity);
-        Self::fill(&mut vertices, Vector3::<f32>::new(0.0, 0.0, 0.0), capacity);
+        super::fill(&mut vertices, Vector3::<f32>::new(0.0, 0.0, 0.0), capacity);
 
         for z in 0..res_z {
             let z_pos: f32 = (z as f32 / (res_z - 1) as f32 - 0.5) * length;
@@ -43,20 +44,19 @@ impl Plane {
         }
 
         let mut uvs = Vec::with_capacity(capacity);
-        Self::fill(&mut uvs, Vector3::<f32>::new(0.0, 0.0, 0.0), capacity);
+        super::fill(&mut uvs, Vector2::<f32>::new(0.0, 0.0), capacity);
         for v in 0..res_z {
             for u in 0..res_x {
-                uvs[u + v * res_x] = Vector3::<f32>::new(
+                uvs[u + v * res_x] = Vector2::new(
                     u as f32 / (res_x - 1) as f32,
                     v as f32 / (res_z - 1) as f32,
-                    0.0,
                 );
             }
         }
 
         let faces: i32 = (res_x as i32 - 1) * (res_z as i32 - 1);
         let mut indices = Vec::with_capacity(faces as usize * 6);
-        Self::fill(&mut indices, 0, faces as usize * 6);
+        super::fill(&mut indices, 0, faces as usize * 6);
 
         let mut t: usize = 0;
         for face in 0..faces {
@@ -131,12 +131,6 @@ impl Plane {
             index_buffer: index_buffer,
             data: data,
             indices: indices,
-        }
-    }
-
-    fn fill<T: Copy>(vector: &mut Vec<T>, filler: T, capacity: usize) {
-        for _ in 0..capacity {
-            vector.push(filler);
         }
     }
 

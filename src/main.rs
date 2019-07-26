@@ -18,6 +18,7 @@ use graphic::program::ProgramError;
 
 use primitive::cube::Cube;
 use primitive::plane::Plane;
+use primitive::sphere::Sphere;
 
 use graphic::texture::Texture;
 use graphic::texture::TextureError;
@@ -88,10 +89,10 @@ pub fn main() {
 
     let cube = Cube::new();
     let plane = Plane::new(2.0, 2.0);
+    let sphere = Sphere::new(1.0, 10, 10);
 
     let camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
-    let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -10.0));
-    model += cgm::Matrix4::<f32>::from_axis_angle(cgm::Vector3::new(0.0, 1.0, 0.0), cgm::Deg(45.0));
+    let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -7.0));
 
     program.bind();
     program.set_mat4f("projection", camera.get_projection());
@@ -116,6 +117,8 @@ pub fn main() {
 
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+
+        // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }
 
     while !canvas.should_close() {
@@ -137,15 +140,16 @@ pub fn main() {
             dir = 1;
         }
 
-        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 2) as f32));
+        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 2) as f32 * 0.1));
         program.set_float("uBrightness", delta_time.sin());
         program.set_float("uContrast", delta_time.sin());
         program.set_float("uGrayscale", delta_time.sin().abs());
         program.set_mat4f("model", &model);
 
         program.bind();
-        plane.bind();
-        // cube.bind();
+        // plane.bind();
+        cube.bind();
+        // sphere.bind();
 
         unsafe {
             gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
