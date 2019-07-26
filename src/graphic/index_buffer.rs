@@ -15,12 +15,15 @@ impl IndexBuffer {
 
         unsafe {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, id);
-            gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, size as isize, data as *const std::ffi::c_void, gl::STATIC_DRAW);
+            gl::BufferData(
+                gl::ELEMENT_ARRAY_BUFFER,
+                size as isize,
+                data as *const std::ffi::c_void,
+                gl::STATIC_DRAW,
+            );
         };
 
-        IndexBuffer {
-            id: id,
-        }
+        IndexBuffer { id: id }
     }
 
     pub fn bind(&self) {

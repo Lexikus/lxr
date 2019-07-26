@@ -1,16 +1,16 @@
 #![allow(dead_code)]
-extern crate gl;
-extern crate cgmath;
 
+extern crate cgmath;
+extern crate gl;
 use super::shader::Shader;
 use std::ffi::CString;
 
-use cgmath::{ Vector2, Vector3, Vector4, Matrix3, Matrix4 };
+
 use cgmath::prelude::Array;
 use cgmath::prelude::Matrix;
-
+use cgmath::{Matrix3, Matrix4, Vector2, Vector3, Vector4};
 pub enum ProgramError {
-    FailedLinkingShader(String)
+    FailedLinkingShader(String),
 }
 
 pub struct Program {
@@ -19,9 +19,7 @@ pub struct Program {
 
 impl Program {
     pub fn new(vertex_shader: Shader, fragment_shader: Shader) -> Result<Program, ProgramError> {
-        let id = unsafe {
-            gl::CreateProgram()
-        };
+        let id = unsafe { gl::CreateProgram() };
 
         let success = unsafe {
             let mut success = 0;
@@ -48,7 +46,7 @@ impl Program {
 
                 let error_message = match String::from_utf8(buf) {
                     Ok(log) => log,
-                    Err(vec) => panic!("Could not convert compilation log from buffer: {}", vec)
+                    Err(vec) => panic!("Could not convert compilation log from buffer: {}", vec),
                 };
 
                 error_message
@@ -59,9 +57,7 @@ impl Program {
         vertex_shader.delete();
         fragment_shader.delete();
 
-        Ok(Program {
-            id: id,
-        })
+        Ok(Program { id: id })
     }
 
     pub fn id(&self) -> u32 {

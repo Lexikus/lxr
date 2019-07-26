@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-extern crate gl;
-extern crate cgmath;
 
+extern crate cgmath;
+extern crate gl;
 pub mod buffer_element;
 
 use buffer_element::BufferElement;
@@ -19,7 +19,12 @@ impl DataBuffer {
         unsafe {
             gl::GenBuffers(1, &mut id);
             gl::BindBuffer(gl::ARRAY_BUFFER, id);
-            gl::BufferData(gl::ARRAY_BUFFER, size as isize, data as *const std::ffi::c_void, gl::STATIC_DRAW);
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                size as isize,
+                data as *const std::ffi::c_void,
+                gl::STATIC_DRAW,
+            );
         }
 
         DataBuffer {
@@ -79,7 +84,10 @@ impl DataBuffer {
 
         for element in self.elements.iter() {
             let position: i32 = unsafe {
-                gl::GetAttribLocation(program_id, element.name().as_ptr() as *const gl::types::GLchar)
+                gl::GetAttribLocation(
+                    program_id,
+                    element.name().as_ptr() as *const gl::types::GLchar,
+                )
             };
 
             unsafe {

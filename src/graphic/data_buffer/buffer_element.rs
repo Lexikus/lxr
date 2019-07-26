@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 extern crate gl;
 
-use std::ffi::CString;
-use std::ffi::CStr;
 
+use std::ffi::CStr;
+use std::ffi::CString;
 pub enum BufferDataType {
     None,
     Float,
@@ -16,7 +16,7 @@ pub enum BufferDataType {
     Int2,
     Int3,
     Int4,
-    Bool
+    Bool,
 }
 
 impl BufferDataType {
@@ -89,7 +89,7 @@ impl BufferElement {
             api_type: buffer_data_type.api_type(),
             normalized: match normalized {
                 true => 1,
-                false => 0
+                false => 0,
             },
         }
     }

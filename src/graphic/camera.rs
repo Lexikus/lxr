@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-extern crate gl;
-extern crate cgmath as cgm;
 
+extern crate cgmath as cgm;
+extern crate gl;
 pub enum CameraType {
     Perspective,
     Orthographic,
@@ -24,14 +24,15 @@ impl Camera {
         let projection = cgm::perspective(cgm::Deg(fovy_deg), aspect, near, far);
         let position: cgm::Vector3<f32> = cgm::Vector3::new(0.0, -5.0, 0.0);
         let mut view: cgm::Matrix4<f32> = cgm::Matrix4::from_translation(position);
-        view += cgm::Matrix4::<f32>::from_axis_angle(cgm::Vector3::new(1.0, 0.0, 0.0), cgm::Deg(45.0));
+        view +=
+            cgm::Matrix4::<f32>::from_axis_angle(cgm::Vector3::new(1.0, 0.0, 0.0), cgm::Deg(45.0));
 
         Camera {
             camera_type: CameraType::Perspective,
             projection_matrix: projection,
             view_matrix: view,
             view_projection_matrix: projection * view,
-            position: position
+            position: position,
         }
     }
 

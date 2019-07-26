@@ -107,13 +107,16 @@ impl Canvas {
                     let key = key.into();
                     let modifier = modifiers.into();
 
-                    input_controller.update(&key, Input {
-                        key: key,
-                        action: action,
-                        modifier: modifier,
-                    });
-                },
-                _ => ()
+                    input_controller.update(
+                        &key,
+                        Input {
+                            key: key,
+                            action: action,
+                            modifier: modifier,
+                        },
+                    );
+                }
+                _ => (),
             };
         }
     }
