@@ -8,6 +8,7 @@ mod primitive;
 
 use base::canvas::Canvas;
 use base::input::Input;
+use base::tick::Tick;
 
 use graphic::shader::Shader;
 use graphic::shader::ShaderType;
@@ -40,6 +41,7 @@ pub fn main() {
         }
     };
     let mut input = Input::new();
+    let mut tick = Tick::new();
 
     let vertex_shader = match Shader::new(
         "assets/shaders/light.vertex.glsl",
@@ -123,6 +125,8 @@ pub fn main() {
 
     while !canvas.should_close() {
         canvas.on_update_begin(&mut input);
+        tick.on_update();
+
         let mut dir = 0;
 
         unsafe {
@@ -130,20 +134,16 @@ pub fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
-        let delta_time: f32 = unsafe {
-            glfw::ffi::glfwGetTime() as f64
-        } as f32;
-
         if input.is_key_pressed_down(&Key::A) {
             dir = -1;
         } else if input.is_key_pressed_down(&Key::D) {
             dir = 1;
         }
 
-        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg((dir * 2) as f32 * 0.1));
-        program.set_float("uBrightness", delta_time.sin());
-        program.set_float("uContrast", delta_time.sin());
-        program.set_float("uGrayscale", delta_time.sin().abs());
+        model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(dir as f32 * 500.0 * tick.delta_time()));
+        program.set_float("uBrightness", tick.time().sin());
+        program.set_float("uContrast", tick.time().sin());
+        program.set_float("uGrayscale", tick.time().sin().abs());
         program.set_mat4f("model", &model);
 
         program.bind();
