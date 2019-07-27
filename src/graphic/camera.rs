@@ -47,4 +47,15 @@ impl Camera {
     pub fn get_view_projection(&self) -> &cgm::Matrix4<f32> {
         &self.view_projection_matrix
     }
+
+    pub fn calculate_matrices(&mut self) {
+        self.view_projection_matrix = self.projection_matrix * self.view_matrix;
+    }
+
+    pub fn translate(&mut self, translation: cgm::Vector3<f32>) {
+        let translation = cgm::Matrix4::<f32>::from_translation(translation);
+        self.view_matrix = self.view_matrix * translation;
+        self.position = cgm::Vector3::new(self.view_matrix.x.x, self.view_matrix.y.y, self.view_matrix.z.z);
+        self.calculate_matrices();
+    }
 }

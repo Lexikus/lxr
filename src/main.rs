@@ -93,13 +93,12 @@ pub fn main() {
     let plane = Plane::new(2.0, 2.0);
     let sphere = Sphere::new(1.0, 10, 10);
 
-    let camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
+    let mut camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
     let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -7.0));
 
     program.bind();
     program.set_mat4f("projection", camera.get_projection());
     program.set_mat4f("model", &model);
-    program.set_mat4f("view", camera.get_view());
 
     let texture = match Texture::new("assets/textures/crate.jpg") {
         Ok(texture) => texture,
@@ -134,10 +133,20 @@ pub fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
-        if input.is_key_pressed_down(&Key::A) {
+        if input.is_key_pressed_down(&Key::Q) {
             dir = -1;
-        } else if input.is_key_pressed_down(&Key::D) {
+        } else if input.is_key_pressed_down(&Key::E) {
             dir = 1;
+        }
+
+        if input.is_key_pressed_down(&Key::W) {
+            camera.translate(cgm::Vector3::unit_y() * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::S) {
+            camera.translate(-cgm::Vector3::unit_y() * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::A) {
+            camera.translate(-cgm::Vector3::unit_x() * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::D) {
+            camera.translate(cgm::Vector3::unit_x() * tick.delta_time());
         }
 
         model = model * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(dir as f32 * 500.0 * tick.delta_time()));
@@ -146,7 +155,9 @@ pub fn main() {
         program.set_float("uGrayscale", tick.time().sin().abs());
         program.set_mat4f("model", &model);
 
-        program.bind();
+        program.set_mat4f("view", camera.get_view());
+
+
         // plane.bind();
         cube.bind();
         // sphere.bind();
