@@ -2,13 +2,11 @@ extern crate cgmath as cgm;
 extern crate gl;
 extern crate glfw;
 
-use cgm::prelude::Matrix;
-use cgm::prelude::SquareMatrix;
-
 mod base;
 mod graphic;
 mod light;
 mod primitive;
+mod component;
 
 use base::canvas::Canvas;
 use base::input::Input;
@@ -98,14 +96,16 @@ pub fn main() {
         }
     };
 
-    let cube = Cube::new();
-    let plane = Plane::new(2.0, 2.0);
-    let sphere = Sphere::new(1.0, 10, 10);
+    let mut cube = Cube::new();
+    cube.entity_mut().transform_mut().translate(cgm::Vector3::new(3.0, 0.0, -7.0));
+
+    let mut plane = Plane::new(2.0, 2.0);
+    plane.entity_mut().transform_mut().translate(cgm::Vector3::new(0.0, -1.0, -7.0));
+
+    let mut sphere = Sphere::new(1.0, 10, 10);
+    sphere.entity_mut().transform_mut().translate(cgm::Vector3::new(-3.0, 0.0, -7.0));
 
     let mut camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
-
-    let mut model = cgm::Matrix4::<f32>::from_translation(cgm::Vector3::new(0.0, 0.0, -7.0));
-    let mut model_tangent: cgm::Matrix4<f32>;
 
     let texture = match Texture::new("assets/textures/crate.jpg") {
         Ok(texture) => texture,
@@ -158,7 +158,7 @@ pub fn main() {
         canvas.on_update_begin(&mut input);
         tick.on_update();
 
-        let mut dir = 0;
+        let mut dir = 0.0;
 
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.7, 1.0);
@@ -166,40 +166,54 @@ pub fn main() {
         }
 
         if input.is_key_pressed_down(&Key::Q) {
-            dir = -1;
+            dir = -1.0;
         } else if input.is_key_pressed_down(&Key::E) {
-            dir = 1;
+            dir = 1.0;
         }
 
         if input.is_key_pressed_down(&Key::W) {
-            camera.translate(cgm::Vector3::unit_y() * tick.delta_time());
-        } else if input.is_key_pressed_down(&Key::S) {
             camera.translate(-cgm::Vector3::unit_y() * tick.delta_time());
-        } else if input.is_key_pressed_down(&Key::A) {
-            camera.translate(-cgm::Vector3::unit_x() * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::S) {
+            camera.translate(cgm::Vector3::unit_y() * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::D) {
+            camera.translate(-cgm::Vector3::unit_x() * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::A) {
             camera.translate(cgm::Vector3::unit_x() * tick.delta_time());
         }
 
-        model = model
-            * cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(dir as f32 * 100.0 * tick.delta_time()));
-        model_tangent = model.invert().unwrap().transpose();
 
         program.set_float("uBrightness", tick.time().sin());
         program.set_float("uContrast", tick.time().sin());
         program.set_float("uGrayscale", tick.time().sin().abs());
 
-        program.set_mat4f("model", &model);
-        program.set_mat4f("uTangentToWorld", &model_tangent);
-
         program.set_mat4f("view", camera.get_view());
         program.set_vec3f("uViewPos", camera.position());
         program.set_mat4f("uLight", &light.as_matrix());
 
-        // plane.bind();
-        cube.bind();
-        // sphere.bind();
 
+        // Plane
+        plane.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
+        program.set_mat4f("model", plane.entity().transform().matrix());
+        program.set_mat4f("uTangentToWorld", &plane.entity().transform().matrix_tangent());
+        plane.entity().mesh().bind();
+        unsafe {
+            gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
+        }
+
+        // Cube
+        cube.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
+        program.set_mat4f("model", cube.entity().transform().matrix());
+        program.set_mat4f("uTangentToWorld", &cube.entity().transform().matrix_tangent());
+        cube.entity().mesh().bind();
+        unsafe {
+            gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
+        }
+
+        // Sphere
+        sphere.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
+        program.set_mat4f("model", sphere.entity().transform().matrix());
+        program.set_mat4f("uTangentToWorld", &sphere.entity().transform().matrix_tangent());
+        sphere.entity().mesh().bind();
         unsafe {
             gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
         }
