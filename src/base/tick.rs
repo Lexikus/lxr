@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use std::time::SystemTime;
-use std::time::Duration;
 
 pub struct Tick {
     time_until_start: SystemTime,

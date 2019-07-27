@@ -1,8 +1,10 @@
 #version 400 core
 
+uniform mat4 uLight;
 uniform float uBrightness;
 uniform float uContrast;
 uniform float uGrayscale;
+uniform vec3 uViewPos;
 
 in vec4 vCol;
 in vec2 vUV;
@@ -40,26 +42,30 @@ vec3 specularReflection(float intensity, float factor, vec3 lightColor, float ha
     return pow(clamp(dot(viewDirection, reflextionDirection), 0.0f, 1.0f), hardness) * intensity * factor * lightColor;
 }
 
+vec3 specularBlinnReflection(float intensity, float factor, vec3 lightColor, float hardness, vec3 viewDirection, vec3 lightDirection, vec3 normal) {
+    vec3 reflextionDirection = normalize(viewDirection + lightDirection);
+    return pow(clamp(dot(normal, reflextionDirection), 0.0f, 1.0f), hardness) * intensity * factor * lightColor;
+}
+
 void main() {
     vec3 color = texture(tex, vUV).rgb;
     vec3 c = color * vCol.rgb;
 
-    vec3 ambientLightColor = vec3(0.75f, 0.75f, 1.0f);
-    vec3 lightColor = vec3(0.75f, 0.75f, 1.0f);
-    vec3 lightPosition = vec3(0.0f, 1.0f, 1.0f);
+    vec3 lightPosition = uLight[0].xyz;
+    vec3 ambientLightColor = uLight[1].xyz;
+    vec3 lightColor = uLight[2].xyz;
+    vec3 viewPosition = uViewPos;
+
+    float ambientIntensity = uLight[0].w;
+    float diffuseIntensity = uLight[1].w;
+    float specularIntensity = uLight[2].w;
+    float hardness = uLight[3].w;
+
     vec3 lightDirection = normalize(lightPosition - vPos);
-    vec3 viewPosition = vec3(0.0f);
 
-
-    float ambientIntensity = 0.5f;
-    float diffuseIntensity = 0.5f;
-    float specularIntensity = 1.0f;
-
-    float hardness = 64.0f;
-
-    float diffuseFactor = 1.0f;
-    float ambientFactor = 1.0f;
-    float specularFactor = 1.0f;
+    float ambientFactor = uLight[3].x;
+    float diffuseFactor = uLight[3].y;
+    float specularFactor = uLight[3].z;
 
     vec3 normal = normalize(vNormalWorldSpace);
     vec3 viewDirection = normalize(viewPosition - vPos);
@@ -67,7 +73,8 @@ void main() {
 
     vec3 ambient = ambientReflection(ambientIntensity, ambientFactor, ambientLightColor);
     vec3 diffuse = diffuseReflection(diffuseIntensity, diffuseFactor, lightColor, lightDirection, normal);
-    vec3 specular = specularReflection(specularIntensity, specularFactor, lightColor, hardness, viewDirection, reflectionDirection);
+    // vec3 specular = specularReflection(specularIntensity, specularFactor, lightColor, hardness, viewDirection, reflectionDirection);
+    vec3 specular = specularBlinnReflection(specularIntensity, specularFactor, lightColor, hardness, viewDirection, lightDirection, normal);
 
     vec3 finalColor = (ambient + diffuse + specular) * c;
 
