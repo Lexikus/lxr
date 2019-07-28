@@ -62,4 +62,25 @@ impl Camera {
         self.position = cgm::Vector3::new(self.view_matrix.x.x, self.view_matrix.y.y, self.view_matrix.z.z);
         self.calculate_matrices();
     }
+
+    pub fn rotate_x(&mut self, rotate_in_deg: f32) {
+        let rotation = cgm::Matrix4::<f32>::from_angle_x(cgm::Deg(rotate_in_deg));
+        self.view_matrix = self.view_matrix * rotation;
+        self.position = cgm::Vector3::new(self.view_matrix.x.x, self.view_matrix.y.y, self.view_matrix.z.z);
+        self.calculate_matrices();
+    }
+
+    pub fn rotate_y(&mut self, rotate_in_deg: f32) {
+        let rotation = cgm::Matrix4::<f32>::from_angle_y(cgm::Deg(rotate_in_deg));
+        self.view_matrix = self.view_matrix * rotation;
+        self.position = cgm::Vector3::new(self.view_matrix.x.x, self.view_matrix.y.y, self.view_matrix.z.z);
+        self.calculate_matrices();
+    }
+
+    pub fn rotate_z(&mut self, rotate_in_deg: f32) {
+        let rotation = cgm::Matrix4::<f32>::from_angle_z(cgm::Deg(rotate_in_deg));
+        self.view_matrix = self.view_matrix * rotation;
+        self.position = cgm::Vector3::new(self.view_matrix.x.x, self.view_matrix.y.y, self.view_matrix.z.z);
+        self.calculate_matrices();
+    }
 }

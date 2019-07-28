@@ -2,11 +2,15 @@
 
 extern crate gl;
 
-use crate::component::entity::Entity;
-use crate::graphic::program::Program;
+use crate::graphic::data_buffer::buffer_element::BufferDataType;
+use crate::graphic::data_buffer::buffer_element::BufferElement;
+use crate::graphic::data_buffer::DataBuffer;
+use crate::graphic::vertex_array::VertexArray;
 
 pub struct SkyBox {
-    entity: Entity,
+    vertex_array: VertexArray,
+    data_buffer: DataBuffer,
+    data: Vec<f32>,
 }
 
 impl SkyBox {
@@ -18,60 +22,59 @@ impl SkyBox {
              1.0, -1.0, -1.0,
              1.0,  1.0, -1.0,
             -1.0,  1.0, -1.0,
-
             -1.0, -1.0,  1.0,
             -1.0, -1.0, -1.0,
             -1.0,  1.0, -1.0,
             -1.0,  1.0, -1.0,
             -1.0,  1.0,  1.0,
             -1.0, -1.0,  1.0,
-
              1.0, -1.0, -1.0,
              1.0, -1.0,  1.0,
              1.0,  1.0,  1.0,
              1.0,  1.0,  1.0,
              1.0,  1.0, -1.0,
              1.0, -1.0, -1.0,
-
             -1.0, -1.0,  1.0,
             -1.0,  1.0,  1.0,
              1.0,  1.0,  1.0,
              1.0,  1.0,  1.0,
              1.0, -1.0,  1.0,
             -1.0, -1.0,  1.0,
-
             -1.0,  1.0, -1.0,
              1.0,  1.0, -1.0,
              1.0,  1.0,  1.0,
              1.0,  1.0,  1.0,
             -1.0,  1.0,  1.0,
             -1.0,  1.0, -1.0,
-
             -1.0, -1.0, -1.0,
             -1.0, -1.0,  1.0,
              1.0, -1.0, -1.0,
              1.0, -1.0, -1.0,
             -1.0, -1.0,  1.0,
-             1.0, -1.0,  1.0
+             1.0, -1.0,  1.0,
         );
 
-        let indices: Vec<i32> = Vec::new();
+        let vertex_array = VertexArray::new();
+        vertex_array.bind();
+
+        let mut data_buffer = DataBuffer::new(data.as_ptr(), data.len() * std::mem::size_of::<f32>());
+
+        let buffer_element_position = BufferElement::new(BufferDataType::Float3, "aPos", false);
+        data_buffer.add_element(buffer_element_position);
+        data_buffer.configure_by_index();
+
+        vertex_array.unbind();
+        data_buffer.unbind();
 
         SkyBox {
-            entity: Entity::new(data, indices),
+            vertex_array: vertex_array,
+            data_buffer: data_buffer,
+            data: data,
         }
     }
 
-    pub fn entity(&self) -> &Entity {
-        &self.entity
-    }
-
-    pub fn entity_mut(&mut self) -> &mut Entity {
-        &mut self.entity
-    }
-
     pub fn draw(&self) {
-        self.entity.mesh().bind();
+        self.vertex_array.bind();
 
         unsafe {
             gl::DrawArrays(gl::TRIANGLES, 0, 36);

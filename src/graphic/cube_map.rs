@@ -26,70 +26,18 @@ impl CubeMap {
 
         let mut textures = Vec::with_capacity(collection.len());
 
-        // for texture in collection.iter() {
+        for texture in collection.iter() {
+            let texture = match image::open(texture) {
+                Ok(texture) => texture,
+                Err(_) => {
+                    return Err(CubeMapError::OpeningTextureFailed(String::from(
+                        format!("opening cube map texture {} failed", texture),
+                    )));
+                }
+            };
 
-        // }
-
-        let texture_right = match image::open(right) {
-            Ok(texture) => texture,
-            Err(_) => {
-                return Err(CubeMapError::OpeningTextureFailed(String::from(
-                    format!("opening cube map texture {} failed", right),
-                )));
-            }
-        };
-
-        let texture_left = match image::open(left) {
-            Ok(texture) => texture,
-            Err(_) => {
-                return Err(CubeMapError::OpeningTextureFailed(String::from(
-                    format!("opening cube map texture {} failed", left),
-                )));
-            }
-        };
-
-        let texture_top = match image::open(top) {
-            Ok(texture) => texture,
-            Err(_) => {
-                return Err(CubeMapError::OpeningTextureFailed(String::from(
-                    format!("opening cube map texture {} failed", top),
-                )));
-            }
-        };
-
-        let texture_bottom = match image::open(bottom) {
-            Ok(texture) => texture,
-            Err(_) => {
-                return Err(CubeMapError::OpeningTextureFailed(String::from(
-                    format!("opening cube map texture {} failed", bottom),
-                )));
-            }
-        };
-
-        let texture_back = match image::open(back) {
-            Ok(texture) => texture,
-            Err(_) => {
-                return Err(CubeMapError::OpeningTextureFailed(String::from(
-                    format!("opening cube map texture {} failed", back),
-                )));
-            }
-        };
-
-        let texture_front = match image::open(front) {
-            Ok(texture) => texture,
-            Err(_) => {
-                return Err(CubeMapError::OpeningTextureFailed(String::from(
-                    format!("opening cube map texture {} failed", front),
-                )));
-            }
-        };
-
-        textures.push(texture_right);
-        textures.push(texture_left);
-        textures.push(texture_top);
-        textures.push(texture_bottom);
-        textures.push(texture_back);
-        textures.push(texture_front);
+            textures.push(texture);
+        }
 
         let mut id: u32 = 0;
 

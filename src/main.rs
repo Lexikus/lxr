@@ -171,12 +171,12 @@ pub fn main() {
     };
 
     let skybox_map_texture = match CubeMap::new(
-        "assets/textures/seeingred_right.jpg",
-        "assets/textures/seeingred_left.jpg",
-        "assets/textures/seeingred_top.jpg",
-        "assets/textures/seeingred_bottom.jpg",
-        "assets/textures/seeingred_back.jpg",
-        "assets/textures/seeingred_front.jpg"
+        "assets/textures/skybox_right.png",
+        "assets/textures/skybox_left.png",
+        "assets/textures/skybox_top.png",
+        "assets/textures/skybox_bottom.png",
+        "assets/textures/skybox_back.png",
+        "assets/textures/skybox_front.png"
     ) {
         Ok(cube_map) => cube_map,
         Err(CubeMapError::OpeningTextureFailed(error_message)) => {
@@ -234,9 +234,9 @@ pub fn main() {
         let mut dir = 0.0;
 
         // rotation all entities
-        if input.is_key_pressed_down(&Key::Q) {
+        if input.is_key_pressed_down(&Key::X) {
             dir = -1.0;
-        } else if input.is_key_pressed_down(&Key::E) {
+        } else if input.is_key_pressed_down(&Key::C) {
             dir = 1.0;
         }
 
@@ -249,6 +249,14 @@ pub fn main() {
             camera.translate(-cgm::Vector3::unit_x() * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::A) {
             camera.translate(cgm::Vector3::unit_x() * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::Q) {
+            camera.rotate_y(-20.0 * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::E) {
+            camera.rotate_y(20.0 * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::R) {
+            camera.rotate_x(-20.0 * tick.delta_time());
+        }  else if input.is_key_pressed_down(&Key::F) {
+            camera.rotate_x(20.0 * tick.delta_time());
         }
 
         // move of the light
