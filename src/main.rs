@@ -22,12 +22,15 @@ use graphic::program::ProgramError;
 
 use graphic::texture::Texture;
 use graphic::texture::TextureError;
+use graphic::cube_map::CubeMap;
+use graphic::cube_map::CubeMapError;
 
 use graphic::camera::Camera;
 
 use primitive::cube::Cube;
 use primitive::plane::Plane;
 use primitive::sphere::Sphere;
+use primitive::sky_box::SkyBox;
 
 use light::Light;
 
@@ -46,15 +49,15 @@ pub fn main() {
     let mut input = Input::new();
     let mut tick = Tick::new();
 
-    let vertex_shader =
+    let default_vertex_shader =
         match Shader::new("assets/shaders/light.vertex.glsl", ShaderType::VertexShader) {
             Ok(v) => v,
             Err(ShaderError::FailedOpeningFile) => {
-                println!("Failed opening file, file may not exist or the path is wrong");
+                println!("Failed opening vertex shader file, file may not exist or the path is wrong");
                 return;
             }
             Err(ShaderError::FailedReadingFile) => {
-                println!("File was not readable, check file content and permissions");
+                println!("Vertex shader file was not readable, check the file content or permission");
                 return;
             }
             Err(ShaderError::FailedCompilingShader(error)) => {
@@ -66,17 +69,37 @@ pub fn main() {
             }
         };
 
-    let fragment_shader = match Shader::new(
+    let skybox_vertex_shader =
+        match Shader::new("assets/shaders/skybox.vertex.glsl", ShaderType::VertexShader) {
+            Ok(v) => v,
+            Err(ShaderError::FailedOpeningFile) => {
+                println!("Failed opening vertex shader file, file may not exist or the path is wrong");
+                return;
+            }
+            Err(ShaderError::FailedReadingFile) => {
+                println!("Vertex shader file was not readable, check the file content or permission");
+                return;
+            }
+            Err(ShaderError::FailedCompilingShader(error)) => {
+                println!(
+                    "Compiling vertex shader failed, check shader content\n{}",
+                    error
+                );
+                return;
+            }
+        };
+
+    let default_fragment_shader = match Shader::new(
         "assets/shaders/light.fragment.glsl",
         ShaderType::FragmentShader,
     ) {
         Ok(v) => v,
         Err(ShaderError::FailedOpeningFile) => {
-            println!("Failed opening file, file may not exist or the path is wrong");
+            println!("Failed opening fragment shader file, file may not exist or the path is wrong");
             return;
         }
         Err(ShaderError::FailedReadingFile) => {
-            println!("File was not readable, check file content and permissions");
+            println!("Fragment shader file was not readable, check the file content or permission");
             return;
         }
         Err(ShaderError::FailedCompilingShader(error)) => {
@@ -88,7 +111,37 @@ pub fn main() {
         }
     };
 
-    let program = match Program::new(vertex_shader, fragment_shader) {
+    let skybox_fragment_shader = match Shader::new(
+        "assets/shaders/skybox.fragment.glsl",
+        ShaderType::FragmentShader,
+    ) {
+        Ok(v) => v,
+        Err(ShaderError::FailedOpeningFile) => {
+            println!("Failed opening fragment shader file, file may not exist or the path is wrong");
+            return;
+        }
+        Err(ShaderError::FailedReadingFile) => {
+            println!("Fragment shader file was not readable, check the file content or permission");
+            return;
+        }
+        Err(ShaderError::FailedCompilingShader(error)) => {
+            println!(
+                "Compiling fragment shader failed, check shader content:\n{}",
+                error
+            );
+            return;
+        }
+    };
+
+    let default_program = match Program::new(default_vertex_shader, default_fragment_shader) {
+        Ok(program) => program,
+        Err(ProgramError::FailedLinkingShader(error)) => {
+            println!("Linking program failed: \n{}", error);
+            return;
+        }
+    };
+
+    let skybox_program = match Program::new(skybox_vertex_shader, skybox_fragment_shader) {
         Ok(program) => program,
         Err(ProgramError::FailedLinkingShader(error)) => {
             println!("Linking program failed: \n{}", error);
@@ -105,18 +158,36 @@ pub fn main() {
     let mut sphere = Sphere::new(1.0, 10, 10);
     sphere.entity_mut().transform_mut().translate(cgm::Vector3::new(-3.0, 0.0, -7.0));
 
+    let skybox = SkyBox::new();
+
     let mut camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
 
-    let texture = match Texture::new("assets/textures/crate.jpg") {
+    let crate_texture = match Texture::new("assets/textures/crate.jpg") {
         Ok(texture) => texture,
         Err(TextureError::OpeningTextureFailed) => {
-            println!("Loading texture failed");
+            println!("Loading crate texture failed");
             return;
         }
     };
 
-    let light = Light::new(
-        cgm::Vector3::new(0.0, 1.0, 1.0),
+    let skybox_map_texture = match CubeMap::new(
+        "assets/textures/seeingred_right.jpg",
+        "assets/textures/seeingred_left.jpg",
+        "assets/textures/seeingred_top.jpg",
+        "assets/textures/seeingred_bottom.jpg",
+        "assets/textures/seeingred_back.jpg",
+        "assets/textures/seeingred_front.jpg"
+    ) {
+        Ok(cube_map) => cube_map,
+        Err(CubeMapError::OpeningTextureFailed(error_message)) => {
+            println!("{}", error_message);
+            return;
+        }
+    };
+
+
+    let mut light = Light::new(
+        cgm::Vector3::new(0.0, 1.0, 0.0),
         cgm::Vector3::new(0.75, 0.75, 1.0),
         cgm::Vector3::new(0.75, 0.75, 1.0),
         0.5,
@@ -128,10 +199,7 @@ pub fn main() {
         64.0,
     );
 
-    program.bind();
-    program.set_mat4f("projection", camera.get_projection());
-
-    texture.bind();
+    // cube_map.bind();
 
     // settings
     unsafe {
@@ -158,19 +226,21 @@ pub fn main() {
         canvas.on_update_begin(&mut input);
         tick.on_update();
 
-        let mut dir = 0.0;
-
         unsafe {
             gl::ClearColor(0.2, 0.3, 0.7, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
+        let mut dir = 0.0;
+
+        // rotation all entities
         if input.is_key_pressed_down(&Key::Q) {
             dir = -1.0;
         } else if input.is_key_pressed_down(&Key::E) {
             dir = 1.0;
         }
 
+        // translation of the camera
         if input.is_key_pressed_down(&Key::W) {
             camera.translate(-cgm::Vector3::unit_y() * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::S) {
@@ -181,42 +251,60 @@ pub fn main() {
             camera.translate(cgm::Vector3::unit_x() * tick.delta_time());
         }
 
+        // move of the light
+        if input.is_key_pressed_down(&Key::I) {
+            light.add_to_position(cgm::Vector3::unit_y() * 50.0 * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::K) {
+            light.add_to_position(-cgm::Vector3::unit_y() * 50.0 * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::L) {
+            light.add_to_position(cgm::Vector3::unit_x() * 50.0 * tick.delta_time());
+        } else if input.is_key_pressed_down(&Key::J) {
+            light.add_to_position(-cgm::Vector3::unit_x() * 50.0 * tick.delta_time());
+        }
 
-        program.set_float("uBrightness", tick.time().sin());
-        program.set_float("uContrast", tick.time().sin());
-        program.set_float("uGrayscale", tick.time().sin().abs());
+        // skybox
+        unsafe {
+            gl::Disable(gl::DEPTH_TEST);
+        }
 
-        program.set_mat4f("view", camera.get_view());
-        program.set_vec3f("uViewPos", camera.position());
-        program.set_mat4f("uLight", &light.as_matrix());
+        skybox_program.bind();
+        skybox_map_texture.bind();
+
+        skybox_program.set_mat4f("projection", camera.get_projection());
+        skybox_program.set_mat4f("view", camera.get_view());
+
+        skybox.draw();
+
+        // entities
+        unsafe {
+            gl::Enable(gl::DEPTH_TEST);
+        }
+
+        default_program.bind();
+        crate_texture.bind();
+
+        default_program.set_mat4f("projection", camera.get_projection());
+
+        default_program.set_float("uBrightness", tick.time().sin());
+        default_program.set_float("uContrast", tick.time().sin());
+        default_program.set_float("uGrayscale", tick.time().sin().abs());
+
+        default_program.set_mat4f("view", camera.get_view());
+        default_program.set_vec3f("uViewPos", camera.position());
+        default_program.set_mat4f("uLight", &light.as_matrix());
 
 
         // Plane
         plane.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
-        program.set_mat4f("model", plane.entity().transform().matrix());
-        program.set_mat4f("uTangentToWorld", &plane.entity().transform().matrix_tangent());
-        plane.entity().mesh().bind();
-        unsafe {
-            gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
-        }
+        plane.draw(&default_program);
 
         // Cube
         cube.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
-        program.set_mat4f("model", cube.entity().transform().matrix());
-        program.set_mat4f("uTangentToWorld", &cube.entity().transform().matrix_tangent());
-        cube.entity().mesh().bind();
-        unsafe {
-            gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
-        }
+        cube.draw(&default_program);
 
         // Sphere
         sphere.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
-        program.set_mat4f("model", sphere.entity().transform().matrix());
-        program.set_mat4f("uTangentToWorld", &sphere.entity().transform().matrix_tangent());
-        sphere.entity().mesh().bind();
-        unsafe {
-            gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
-        }
+        sphere.draw(&default_program);
 
         canvas.on_update_end();
     }

@@ -6,6 +6,7 @@ use cgm::Vector3;
 use cgm::Vector2;
 
 use crate::component::entity::Entity;
+use crate::graphic::program::Program;
 
 pub struct Plane {
     entity: Entity,
@@ -102,5 +103,15 @@ impl Plane {
 
     pub fn entity_mut(&mut self) -> &mut Entity {
         &mut self.entity
+    }
+
+    pub fn draw(&self, program: &Program) {
+        program.set_mat4f("model", self.entity.transform().matrix());
+        program.set_mat4f("uTangentToWorld", &self.entity.transform().matrix_tangent());
+        self.entity.mesh().bind();
+
+        unsafe {
+            gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, std::ptr::null());
+        }
     }
 }

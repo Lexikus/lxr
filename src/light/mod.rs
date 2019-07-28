@@ -93,4 +93,8 @@ impl Light {
             self.ambient_factor, self.diffuse_factor, self.specular_factor, self.hardness,
         )
     }
+
+    pub fn add_to_position(&mut self, translation: Vector3<f32>) {
+        self.position += translation;
+    }
 }

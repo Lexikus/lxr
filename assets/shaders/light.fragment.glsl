@@ -61,11 +61,11 @@ void main() {
     float specularIntensity = uLight[2].w;
     float hardness = uLight[3].w;
 
-    vec3 lightDirection = normalize(lightPosition - vPos);
-
     float ambientFactor = uLight[3].x;
     float diffuseFactor = uLight[3].y;
     float specularFactor = uLight[3].z;
+
+    vec3 lightDirection = normalize(lightPosition - vPos);
 
     vec3 normal = normalize(vNormalWorldSpace);
     vec3 viewDirection = normalize(viewPosition - vPos);
