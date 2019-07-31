@@ -53,7 +53,7 @@ impl Texture {
 
     pub fn bind_at_position(&self, position: u32) {
         unsafe {
-            gl::ActiveTexture(gl::TEXTURE0 + position);
+            gl::ActiveTexture(gl::TEXTURE0 as u32 + position);
             gl::BindTexture(gl::TEXTURE_2D, self.id);
         }
     }

@@ -35,8 +35,8 @@ use primitive::sky_box::SkyBox;
 use light::Light;
 
 const TITLE: &str = "OpenGL";
-const WIDTH: u32 = 800;
-const HEIGHT: u32 = 800;
+const WIDTH: u32 = 1920;
+const HEIGHT: u32 = 1080;
 
 pub fn main() {
     let mut canvas = match Canvas::new(TITLE, WIDTH, HEIGHT) {
@@ -150,10 +150,10 @@ pub fn main() {
     };
 
     let mut cube = Cube::new();
-    cube.entity_mut().transform_mut().translate(cgm::Vector3::new(3.0, 0.0, -7.0));
+    cube.entity_mut().transform_mut().translate(cgm::Vector3::new(0.0, 0.0, -7.0));
 
     let mut plane = Plane::new(2.0, 2.0);
-    plane.entity_mut().transform_mut().translate(cgm::Vector3::new(0.0, -1.0, -7.0));
+    plane.entity_mut().transform_mut().translate(cgm::Vector3::new(3.0, -1.0, -7.0));
 
     let mut sphere = Sphere::new(1.0, 10, 10);
     sphere.entity_mut().transform_mut().translate(cgm::Vector3::new(-3.0, 0.0, -7.0));
@@ -163,11 +163,11 @@ pub fn main() {
     let mut camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
 
     let pbr_texture_images = [
-        "assets/textures/albedo.jpg",
-        "assets/textures/normal.jpg",
-        "assets/textures/metallic.jpg",
-        "assets/textures/roughness.jpg",
-        "assets/textures/ao.jpg"
+        "assets/textures/albedo.png",
+        "assets/textures/normal.png",
+        "assets/textures/metallic.png",
+        "assets/textures/roughness.png",
+        "assets/textures/ao.png"
     ];
 
     let mut pbr_textures: Vec<Texture> = Vec::with_capacity(pbr_texture_images.len());
@@ -301,6 +301,13 @@ pub fn main() {
         }
 
         default_program.bind();
+
+        default_program.set_int("uAlbedoMap", 0);
+        default_program.set_int("uNormalMap", 1);
+        default_program.set_int("uMetallicMap", 2);
+        default_program.set_int("uRoughnessMap", 3);
+        default_program.set_int("uAOMap", 4);
+
         for (index, pbr_texture) in pbr_textures.iter().enumerate() {
             pbr_texture.bind_at_position(index as u32);
         }
