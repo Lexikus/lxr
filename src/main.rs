@@ -50,7 +50,7 @@ pub fn main() {
     let mut tick = Tick::new();
 
     let default_vertex_shader =
-        match Shader::new("assets/shaders/light.vertex.glsl", ShaderType::VertexShader) {
+        match Shader::new("assets/shaders/pbr.vertex.glsl", ShaderType::VertexShader) {
             Ok(v) => v,
             Err(ShaderError::FailedOpeningFile) => {
                 println!("Failed opening vertex shader file, file may not exist or the path is wrong");
@@ -90,7 +90,7 @@ pub fn main() {
         };
 
     let default_fragment_shader = match Shader::new(
-        "assets/shaders/light.fragment.glsl",
+        "assets/shaders/pbr.fragment.glsl",
         ShaderType::FragmentShader,
     ) {
         Ok(v) => v,
@@ -162,13 +162,27 @@ pub fn main() {
 
     let mut camera = Camera::perspective(45.0, (WIDTH / HEIGHT) as f32, 0.1, 1000.0);
 
-    let crate_texture = match Texture::new("assets/textures/crate.jpg") {
-        Ok(texture) => texture,
-        Err(TextureError::OpeningTextureFailed) => {
-            println!("Loading crate texture failed");
-            return;
-        }
-    };
+    let pbr_texture_images = [
+        "assets/textures/albedo.jpg",
+        "assets/textures/normal.jpg",
+        "assets/textures/metallic.jpg",
+        "assets/textures/roughness.jpg",
+        "assets/textures/ao.jpg"
+    ];
+
+    let mut pbr_textures: Vec<Texture> = Vec::with_capacity(pbr_texture_images.len());
+
+    for image in pbr_texture_images.iter() {
+        let texture = match Texture::new(image) {
+            Ok(texture) => texture,
+            Err(TextureError::OpeningTextureFailed) => {
+                println!("Loading {} pbr texture failed", image);
+                return;
+            }
+        };
+
+        pbr_textures.push(texture);
+    }
 
     let skybox_map_texture = match CubeMap::new(
         "assets/textures/skybox_right.png",
@@ -198,8 +212,6 @@ pub fn main() {
         1.0,
         64.0,
     );
-
-    // cube_map.bind();
 
     // settings
     unsafe {
@@ -289,16 +301,14 @@ pub fn main() {
         }
 
         default_program.bind();
-        crate_texture.bind();
+        for (index, pbr_texture) in pbr_textures.iter().enumerate() {
+            pbr_texture.bind_at_position(index as u32);
+        }
 
         default_program.set_mat4f("projection", camera.get_projection());
 
-        default_program.set_float("uBrightness", tick.time().sin());
-        default_program.set_float("uContrast", tick.time().sin());
-        default_program.set_float("uGrayscale", tick.time().sin().abs());
-
         default_program.set_mat4f("view", camera.get_view());
-        default_program.set_vec3f("uViewPos", camera.position());
+        default_program.set_vec3f("uCameraPos", camera.position());
         default_program.set_mat4f("uLight", &light.as_matrix());
 
 

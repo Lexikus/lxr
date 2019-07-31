@@ -21,12 +21,20 @@ impl Texture {
             Err(_) => return Err(TextureError::OpeningTextureFailed),
         };
 
+        let format = match texture {
+            image::ImageLuma8(_) => gl::RED,
+            image::ImageLumaA8(_) => gl::RG,
+            image::ImageRgb8(_) => gl::RGB,
+            image::ImageRgba8(_) => gl::RGBA,
+            _ => gl::RGB,
+        };
+
         let mut id: u32 = 0;
 
         unsafe {
             gl::GenTextures(1, &mut id);
             gl::BindTexture(gl::TEXTURE_2D, id);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, texture.width() as i32, texture.height() as i32, 0, gl::RGB, gl::UNSIGNED_BYTE, texture.raw_pixels().as_ptr() as *const std::ffi::c_void);
+            gl::TexImage2D(gl::TEXTURE_2D, 0, format as i32, texture.width() as i32, texture.height() as i32, 0, gl::RGB, gl::UNSIGNED_BYTE, texture.raw_pixels().as_ptr() as *const std::ffi::c_void);
             gl::GenerateMipmap(gl::TEXTURE_2D);
         }
 
@@ -39,6 +47,13 @@ impl Texture {
 
     pub fn bind(&self) {
         unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, self.id);
+        }
+    }
+
+    pub fn bind_at_position(&self, position: u32) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0 + position);
             gl::BindTexture(gl::TEXTURE_2D, self.id);
         }
     }
