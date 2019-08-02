@@ -34,7 +34,7 @@ impl Tick {
 
     pub fn time(&self) -> f32 {
         let time = SystemTime::now();
-        match time.duration_since(self.previous_time) {
+        match time.duration_since(self.time_until_start) {
             Ok(time) => time.as_secs() as f32,
             Err(_) => return 0.0,
         }

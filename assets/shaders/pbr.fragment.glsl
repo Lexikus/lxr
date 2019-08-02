@@ -1,5 +1,8 @@
 #version 400 core
 
+// Tthis pbr shader was build and modified from this tutorial
+// https://learnopengl.com/PBR/Lighting
+
 uniform mat4 uLight;
 uniform vec3 uCameraPos;
 
@@ -18,25 +21,7 @@ out vec4 fragColor;
 
 const float PI = 3.14159265359;
 
-vec3 getNormalFromMap()
-{
-    vec3 tangentNormal = texture(uNormalMap, vUV).xyz * 2.0 - 1.0;
-
-    vec3 Q1  = dFdx(vPos);
-    vec3 Q2  = dFdy(vPos);
-    vec2 st1 = dFdx(vUV);
-    vec2 st2 = dFdy(vUV);
-
-    vec3 N   = normalize(vNor);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(TBN * tangentNormal);
-}
-// ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
+float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness*roughness;
     float a2 = a*a;
     float NdotH = max(dot(N, H), 0.0);
@@ -48,9 +33,8 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 
     return nom / denom;
 }
-// ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
+
+float geometrySchlickGGX(float NdotV, float roughness) {
     float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
 
@@ -59,22 +43,19 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 
     return nom / denom;
 }
-// ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
+
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+    float ggx2 = geometrySchlickGGX(NdotV, roughness);
+    float ggx1 = geometrySchlickGGX(NdotL, roughness);
 
     return ggx1 * ggx2;
 }
-// ----------------------------------------------------------------------------
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
-// ----------------------------------------------------------------------------
 
 void main()
 {
@@ -82,22 +63,14 @@ void main()
     vec3 ambientLightColor = uLight[1].xyz;
     vec3 lightColor = uLight[2].xyz;
 
-    float ambientIntensity = uLight[0].w;
-    float diffuseIntensity = uLight[1].w;
-    float specularIntensity = uLight[2].w;
-    float hardness = uLight[3].w;
-
-    float ambientFactor = uLight[3].x;
-    float diffuseFactor = uLight[3].y;
-    float specularFactor = uLight[3].z;
-
+    // albedo with gamma correction
     vec3 albedo     = pow(texture(uAlbedoMap, vUV).rgb, vec3(2.2));
     float metallic  = texture(uMetallicMap, vUV).r;
     float roughness = texture(uRoughnessMap, vUV).r;
     float ao        = texture(uAOMap, vUV).r;
 
     vec3 N = texture(uNormalMap, vUV).xyz * 2.0 - 1.0;
-    vec3 V = getNormalFromMap();
+    vec3 V = N * vNor;
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -114,12 +87,13 @@ void main()
     vec3 radiance = lightColor * attenuation;
 
     // Cook-Torrance BRDF
-    float NDF = DistributionGGX(N, H, roughness);
-    float G   = GeometrySmith(N, V, L, roughness);
+    float NDF = distributionGGX(N, H, roughness);
+    float G   = geometrySmith(N, V, L, roughness);
     vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 nominator    = NDF * G * F;
-    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // 0.001 to prevent divide by zero.
+    // 0.001 to prevent divide by zero.
+    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
     vec3 specular = nominator / denominator;
 
     // kS is equal to Fresnel
@@ -137,11 +111,11 @@ void main()
     float NdotL = max(dot(N, L), 0.0);
 
     // add to outgoing radiance Lo
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+    // note that we already multiplied the BRDF by the Fresnel (kS) so
+    // we won't multiply by kS again
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
-    // ambient lighting (note that the next IBL tutorial will replace
-    // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient = vec3(0.03) * albedo * ambientLightColor * ao;
 
     vec3 color = ambient + Lo;
 

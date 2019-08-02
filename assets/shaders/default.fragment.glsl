@@ -4,7 +4,7 @@ uniform mat4 uLight;
 uniform float uBrightness;
 uniform float uContrast;
 uniform float uGrayscale;
-uniform vec3 uViewPos;
+uniform vec3 uCameraPos;
 
 in vec4 vCol;
 in vec2 vUV;
@@ -16,18 +16,18 @@ out vec4 fragColor;
 
 uniform sampler2D tex;
 
-void setBrightness(inout vec3 c ) {
-    c = clamp(c + uBrightness, 0.0f, 1.0f);
+void setBrightness(inout vec3 c, float brightness) {
+    c = clamp(c + brightness, 0.0f, 1.0f);
 }
 
-void setContrast(inout vec3 c) {
-    float f = (uContrast + 1.0f) / (1.0f - uContrast);
+void setContrast(inout vec3 c, float contrast) {
+    float f = (contrast + 1.0f) / (1.0f - contrast);
     c = f * (c - 0.5f) + 0.5f;
 }
 
-void setGrayscale(inout vec3 c) {
+void setGrayscale(inout vec3 c, float grayscale) {
     float f = (c.x + c.y + c.z) / 3;
-    c = mix(vec3(f), c, uGrayscale);
+    c = mix(vec3(f), c, grayscale);
 }
 
 vec3 ambientReflection (float intesity, float factor, vec3 lightColor) {
@@ -54,7 +54,6 @@ void main() {
     vec3 lightPosition = uLight[0].xyz;
     vec3 ambientLightColor = uLight[1].xyz;
     vec3 lightColor = uLight[2].xyz;
-    vec3 viewPosition = uViewPos;
 
     float ambientIntensity = uLight[0].w;
     float diffuseIntensity = uLight[1].w;
@@ -67,8 +66,8 @@ void main() {
 
     vec3 lightDirection = normalize(lightPosition - vPos);
 
-    vec3 normal = normalize(vNormalWorldSpace);
-    vec3 viewDirection = normalize(viewPosition - vPos);
+    vec3 normal = normalize(vNor);
+    vec3 viewDirection = normalize(uCameraPos - vPos);
     vec3 reflectionDirection = reflect(-lightDirection, normal);
 
     vec3 ambient = ambientReflection(ambientIntensity, ambientFactor, ambientLightColor);

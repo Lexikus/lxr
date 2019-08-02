@@ -53,8 +53,16 @@ impl Light {
         self.ambient_light_color
     }
 
+    pub fn set_ambient_light_color(&mut self, color: Vector3<f32>) {
+        self.ambient_light_color = color;
+    }
+
     pub fn light_color(&self) -> Vector3<f32> {
         self.light_color
+    }
+
+    pub fn set_light_color(&mut self, color: Vector3<f32>) {
+        self.light_color = color;
     }
 
     pub fn ambient_intensity(&self) -> f32 {

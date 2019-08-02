@@ -1,9 +1,5 @@
 #version 400 core
 
-uniform float uBrightness;
-uniform float uContrast;
-uniform float uGrayscale;
-
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNor;
 layout (location = 2) in vec2 aUV;
@@ -20,13 +16,10 @@ out vec2 vUV;
 out vec3 vNor;
 out vec3 vPos;
 
-out vec3 vNormalWorldSpace;
-
 void main() {
     vCol = aCol;
     vUV = aUV;
-    vNor = aNor;
-    vPos = (model * vec4(aPos, 1.0f)).xyz;
-    vNormalWorldSpace = mat3(uTangentToWorld) * aNor;
+    vNor = mat3(uTangentToWorld) * aNor;
+    vPos = vec3(model * vec4(aPos, 1.0f));
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
 }

@@ -9,6 +9,8 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform mat4 uTangentToWorld;
+
 out vec4 vCol;
 out vec2 vUV;
 out vec3 vNor;
@@ -17,7 +19,7 @@ out vec3 vPos;
 void main() {
     vCol = aCol;
     vUV = aUV;
-    vNor = mat3(model) * aNor;
+    vNor = mat3(uTangentToWorld) * aNor;
     vPos = vec3(model * vec4(aPos, 1.0f));
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
 }
