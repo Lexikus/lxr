@@ -13,6 +13,8 @@ use base::input::Input;
 use base::keyboard::Key;
 use base::tick::Tick;
 
+use graphic::api;
+
 use graphic::shader::Shader;
 use graphic::shader::ShaderError;
 use graphic::shader::ShaderType;
@@ -37,6 +39,10 @@ use light::Light;
 const TITLE: &str = "OpenGL";
 const WIDTH: u32 = 1920;
 const HEIGHT: u32 = 1080;
+const LIGHT_SPEED: f32 = 5.0;
+const ENTITY_ROTATION_SPEED: f32 = 200.0;
+const CAMERA_ROTATION_SPEED: f32 = 20.0;
+
 
 pub fn main() {
     let mut canvas = match Canvas::new(TITLE, WIDTH, HEIGHT) {
@@ -150,13 +156,13 @@ pub fn main() {
     };
 
     let mut cube = Cube::new();
-    cube.entity_mut().transform_mut().translate(cgm::Vector3::new(0.0, 0.0, -7.0));
+    cube.translate(cgm::Vector3::new(0.0, 0.0, -7.0));
 
     let mut plane = Plane::new(2.0, 2.0);
-    plane.entity_mut().transform_mut().translate(cgm::Vector3::new(3.0, -1.0, -7.0));
+    plane.translate(cgm::Vector3::new(3.0, -1.0, -7.0));
 
     let mut sphere = Sphere::new(1.0, 10, 10);
-    sphere.entity_mut().transform_mut().translate(cgm::Vector3::new(-3.0, 0.0, -7.0));
+    sphere.translate(cgm::Vector3::new(-3.0, 0.0, -7.0));
 
     let skybox = SkyBox::new();
 
@@ -185,12 +191,12 @@ pub fn main() {
     }
 
     let skybox_map_texture = match CubeMap::new(
-        "assets/textures/skybox_right.png",
-        "assets/textures/skybox_left.png",
-        "assets/textures/skybox_top.png",
-        "assets/textures/skybox_bottom.png",
-        "assets/textures/skybox_back.png",
-        "assets/textures/skybox_front.png"
+        "assets/textures/skybox_right.jpg",
+        "assets/textures/skybox_left.jpg",
+        "assets/textures/skybox_top.jpg",
+        "assets/textures/skybox_bottom.jpg",
+        "assets/textures/skybox_back.jpg",
+        "assets/textures/skybox_front.jpg"
     ) {
         Ok(cube_map) => cube_map,
         Err(CubeMapError::OpeningTextureFailed(error_message)) => {
@@ -215,8 +221,6 @@ pub fn main() {
 
     // settings
     unsafe {
-        gl::Enable(gl::DEPTH_TEST);
-
         gl::TexParameteri(
             gl::TEXTURE_2D,
             gl::TEXTURE_WRAP_S,
@@ -230,25 +234,21 @@ pub fn main() {
 
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-
-        // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }
 
     while !canvas.should_close() {
         canvas.on_update_begin(&mut input);
         tick.on_update();
 
-        unsafe {
-            gl::ClearColor(0.2, 0.3, 0.7, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
+        api::clear_color(0.2, 0.3, 0.7, 1.0);
+        api::clear();
 
         let mut dir = 0.0;
 
         // rotation all entities
-        if input.is_key_pressed_down(&Key::X) {
+        if input.is_key_pressed_down(&Key::Q) {
             dir = -1.0;
-        } else if input.is_key_pressed_down(&Key::C) {
+        } else if input.is_key_pressed_down(&Key::E) {
             dir = 1.0;
         }
 
@@ -261,31 +261,25 @@ pub fn main() {
             camera.translate(-cgm::Vector3::unit_x() * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::A) {
             camera.translate(cgm::Vector3::unit_x() * tick.delta_time());
-        } else if input.is_key_pressed_down(&Key::Q) {
-            camera.rotate_y(-20.0 * tick.delta_time());
-        } else if input.is_key_pressed_down(&Key::E) {
-            camera.rotate_y(20.0 * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::R) {
-            camera.rotate_x(-20.0 * tick.delta_time());
+            camera.rotate_x(-1.0 * CAMERA_ROTATION_SPEED * tick.delta_time());
         }  else if input.is_key_pressed_down(&Key::F) {
-            camera.rotate_x(20.0 * tick.delta_time());
+            camera.rotate_x(1.0 * CAMERA_ROTATION_SPEED * tick.delta_time());
         }
 
         // move of the light
         if input.is_key_pressed_down(&Key::I) {
-            light.add_to_position(cgm::Vector3::unit_y() * 50.0 * tick.delta_time());
+            light.add_to_position(cgm::Vector3::unit_y() * LIGHT_SPEED * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::K) {
-            light.add_to_position(-cgm::Vector3::unit_y() * 50.0 * tick.delta_time());
+            light.add_to_position(-cgm::Vector3::unit_y() * LIGHT_SPEED * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::L) {
-            light.add_to_position(cgm::Vector3::unit_x() * 50.0 * tick.delta_time());
+            light.add_to_position(cgm::Vector3::unit_x() * LIGHT_SPEED * tick.delta_time());
         } else if input.is_key_pressed_down(&Key::J) {
-            light.add_to_position(-cgm::Vector3::unit_x() * 50.0 * tick.delta_time());
+            light.add_to_position(-cgm::Vector3::unit_x() * LIGHT_SPEED * tick.delta_time());
         }
 
         // skybox
-        unsafe {
-            gl::Disable(gl::DEPTH_TEST);
-        }
+        api::disable_depth_test();
 
         skybox_program.bind();
         skybox_map_texture.bind();
@@ -296,9 +290,7 @@ pub fn main() {
         skybox.draw();
 
         // entities
-        unsafe {
-            gl::Enable(gl::DEPTH_TEST);
-        }
+        api::enable_depth_test();
 
         default_program.bind();
 
@@ -320,15 +312,15 @@ pub fn main() {
 
 
         // Plane
-        plane.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
+        plane.rotate_y(dir * ENTITY_ROTATION_SPEED * tick.delta_time());
         plane.draw(&default_program);
 
         // Cube
-        cube.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
+        cube.rotate_y(dir * ENTITY_ROTATION_SPEED * tick.delta_time());
         cube.draw(&default_program);
 
         // Sphere
-        sphere.entity_mut().transform_mut().rotate_y(dir * 200.0 * tick.delta_time());
+        sphere.rotate_y(dir * ENTITY_ROTATION_SPEED * tick.delta_time());
         sphere.draw(&default_program);
 
         canvas.on_update_end();

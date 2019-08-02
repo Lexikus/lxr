@@ -105,6 +105,14 @@ impl Plane {
         &mut self.entity
     }
 
+    pub fn translate(&mut self, translation: Vector3<f32>) {
+        self.entity.transform_mut().translate(translation);
+    }
+
+    pub fn rotate_y(&mut self, rotate_in_deg: f32) {
+        self.entity.transform_mut().rotate_y(rotate_in_deg);
+    }
+
     pub fn draw(&self, program: &Program) {
         program.set_mat4f("model", self.entity.transform().matrix());
         program.set_mat4f("uTangentToWorld", &self.entity.transform().matrix_tangent());

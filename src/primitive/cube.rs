@@ -1,7 +1,11 @@
 #![allow(dead_code)]
 
+extern crate cgmath as cgm;
+
 use crate::component::entity::Entity;
 use crate::graphic::program::Program;
+
+use cgm::Vector3;
 
 pub struct Cube {
     entity: Entity,
@@ -70,6 +74,14 @@ impl Cube {
 
     pub fn entity_mut(&mut self) -> &mut Entity {
         &mut self.entity
+    }
+
+    pub fn translate(&mut self, translation: Vector3<f32>) {
+        self.entity.transform_mut().translate(translation);
+    }
+
+    pub fn rotate_y(&mut self, rotate_in_deg: f32) {
+        self.entity.transform_mut().rotate_y(rotate_in_deg);
     }
 
     pub fn draw(&self, program: &Program) {
