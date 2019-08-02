@@ -1,6 +1,6 @@
 #version 400 core
 
-// Tthis pbr shader was build and modified from this tutorial
+// This pbr shader was build and modified from this tutorial
 // https://learnopengl.com/PBR/Lighting
 
 uniform mat4 uLight;
